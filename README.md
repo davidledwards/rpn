@@ -1,4 +1,4 @@
-# RPN
+# RPN Compiler and Interpreter
 A simple RPN compiler and interpreter for instructional purposes.
 
 ## License
