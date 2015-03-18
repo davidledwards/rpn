@@ -1,11 +1,5 @@
-# Scala API and CLI for ZooKeeper
-A collection of Scala artifacts that make working with ZooKeeper enjoyable.
-
-## Projects
-* `zookeeper-client` - a functional API layered over the ZooKeeper client
-* `zookeeper-cli` - a much nicer command line program that replaces `zkCli.sh`
-
-See individual subprojects for build instructions. Note that `zookeeper-cli` depends on `zookeeper-client`.
+# RPN
+A simple RPN compiler and interpreter for instructional purposes.
 
 ## License
 Copyright 2015 David Edwards
