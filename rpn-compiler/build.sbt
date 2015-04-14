@@ -21,3 +21,26 @@ javacOptions ++= Seq(
   "-source", "1.6",
   "-target", "1.6"
 )
+
+packSettings
+
+packMain := Map("rpnc" -> "com.loopfor.rpn.compiler.Compiler")
+
+publishTo := Some(
+  if (version.value endsWith "SNAPSHOT")
+    "Sonatype Nexus Snapshot Repository" at "https://oss.sonatype.org/content/repositories/snapshots/"
+  else
+    "Sonatype Nexus Release Repository" at "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+)
+
+pomIncludeRepository := { _ => false }
+
+pomExtra := (
+  <developers>
+    <developer>
+      <id>davidledwards</id>
+      <name>David Edwards</name>
+      <email>david.l.edwards@gmail.com</email>
+    </developer>
+  </developers>
+)
