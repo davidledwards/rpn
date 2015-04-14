@@ -1,6 +1,6 @@
-package com.loopfor.rpn.compiler
+package com.loopfor.rpn.interpreter
 
-object Compiler {
+object Interpreter {
   def main(args: Array[String]): Unit = {
     println("todo")
   }
