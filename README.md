@@ -1,6 +1,8 @@
 # RPN Compiler and Interpreter
 A simple RPN compiler and interpreter for instructional purposes.
 
+This project was developed for use in a Cerner DevCon talk.
+
 ## License
 Copyright 2015 David Edwards
 
