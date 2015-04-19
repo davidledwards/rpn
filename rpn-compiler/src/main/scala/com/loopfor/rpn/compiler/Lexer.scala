@@ -21,7 +21,7 @@ class Lexer private () {
     case None => (EOSToken, in)
   }
 
-  @tailrec private def readNumber(in: Stream[Char], lexeme: String): (NumberToken, Stream[Char]) = in.headOption match {
+  @tailrec private def readNumber(in: Stream[Char], lexeme: String): (Token, Stream[Char]) = in.headOption match {
     case Some('.') =>
       if (lexeme contains '.') throw new Exception(s"$lexeme.: malformed number")
       else readNumber(in.tail, lexeme + '.')
@@ -31,9 +31,13 @@ class Lexer private () {
       else (NumberToken(lexeme), in)
   }
 
-  @tailrec private def readSymbol(in: Stream[Char], lexeme: String): (SymbolToken, Stream[Char]) = in.headOption match {
+  @tailrec private def readSymbol(in: Stream[Char], lexeme: String): (Token, Stream[Char]) = in.headOption match {
     case Some(Letter(c)) => readSymbol(in.tail, lexeme + c)
-    case _ => (SymbolToken(lexeme), in)
+    case _ =>
+      (lexeme match {
+        case Token(t) => t
+        case _ => SymbolToken(lexeme)
+      }, in)
   }
 
   private object Digit {

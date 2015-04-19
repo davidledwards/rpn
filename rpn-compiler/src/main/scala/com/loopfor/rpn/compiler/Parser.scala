@@ -45,6 +45,9 @@ class Parser private () {
   /**
    * p3 ::= '*' <p4> <p3>
    *    ::= '/' <p4> <p3>
+   *    ::= '%' <p4> <p3>
+   *    ::= 'pow' <p4> <p3>
+   *    ::= 'root' <p4> <p3>
    *    ::= e
    */
   @tailrec private def p3(l: AST, in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
@@ -54,15 +57,47 @@ class Parser private () {
     case Some(SlashToken) =>
       val (r, rest) = p4(in.tail)
       p3(DivideAST(l, r), rest)
+    case Some(PercentToken) =>
+      val (r, rest) = p4(in.tail)
+      p3(ModuloAST(l, r), rest)
+    case Some(PowerToken) =>
+      val (r, rest) = p4(in.tail)
+      p3(PowerAST(l, r), rest)
+    case Some(RootToken) =>
+      val (r, rest) = p4(in.tail)
+      p3(RootAST(l, r), rest) 
     case _ => (l, in)
   }
 
   /**
-   * p4 ::= '(' <p0> ')'
+   * p4 ::= <p6> <p5>
+   */
+  private def p4(in: Stream[Token]): (AST, Stream[Token]) = {
+    val (l, rest) = p6(in)
+    p5(l, rest)
+  }
+
+  /**
+   * p5 ::= 'min' <p6> <p5>
+   *    ::= 'max' <p6> <p5>
+   *    ::= e
+   */
+  @tailrec private def p5(l: AST, in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
+    case Some(MinToken) =>
+      val (r, rest) = p6(in.tail)
+      p5(MinAST(l, r), rest)
+    case Some(MaxToken) =>
+      val (r, rest) = p6(in.tail)
+      p5(MaxAST(l, r), rest)
+    case _ => (l, in)
+  }
+
+  /**
+   * p6 ::= '(' <p0> ')'
    *    ::= <symbol>
    *    ::= <number>
    */
-  private def p4(in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
+  private def p6(in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
     case Some(LeftParenToken) =>
       val (ast, rest) = p0(in.tail)
       (ast, confirm(rest, RightParenToken))

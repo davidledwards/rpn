@@ -6,8 +6,13 @@ case object PlusToken extends Token("+")
 case object MinusToken extends Token("-")
 case object StarToken extends Token("*")
 case object SlashToken extends Token("/")
+case object PercentToken extends Token("%")
 case object LeftParenToken extends Token("(")
 case object RightParenToken extends Token(")")
+case object PowerToken extends Token("pow")
+case object RootToken extends Token("root")
+case object MinToken extends Token("min")
+case object MaxToken extends Token("max")
 
 case class SymbolToken(override val lexeme: String) extends Token(lexeme)
 case class NumberToken(override val lexeme: String) extends Token(lexeme)
@@ -16,13 +21,22 @@ case object EOSToken extends Token("<EOS>")
 
 object Token {
   private val simple: Map[Char, Token] = Map(
-        '+' -> PlusToken,
-        '-' -> MinusToken,
-        '*' -> StarToken,
-        '/' -> SlashToken,
-        '(' -> LeftParenToken,
-        ')' -> RightParenToken
+        PlusToken.lexeme(0) -> PlusToken,
+        MinusToken.lexeme(0) -> MinusToken,
+        StarToken.lexeme(0) -> StarToken,
+        SlashToken.lexeme(0) -> SlashToken,
+        PercentToken.lexeme(0) -> PercentToken,
+        LeftParenToken.lexeme(0) -> LeftParenToken,
+        RightParenToken.lexeme(0) -> RightParenToken
+        )
+
+  private val symbols: Map[String, Token] = Map(
+        PowerToken.lexeme -> PowerToken,
+        RootToken.lexeme -> RootToken,
+        MinToken.lexeme -> MinToken,
+        MaxToken.lexeme -> MaxToken
         )
 
   def unapply(c: Char): Option[Token] = simple.get(c)
+  def unapply(s: String): Option[Token] = symbols.get(s)
 }

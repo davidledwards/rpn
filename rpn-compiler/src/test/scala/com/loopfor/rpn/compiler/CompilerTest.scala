@@ -9,7 +9,7 @@ object CompilerTest {
     val optimizer = Optimizer()
     val c = (lexer.apply _) andThen (parser.apply _) andThen (optimizer.apply _)
 
-    val in = Source.fromString("1.2 + x * (3.32 / 4.981) - ((y * 6.1) + 7.0001) - z").toStream
+    val in = Source.fromString("1.2 + x pow y * (3.32 / 4.981 + y root (1 / x)) - ((y * 6.1) + 7.0001 + (x min y) % 4.23) - z % (t * 0.123)").toStream
     val ast = c(in)
     println(ast)
   }
