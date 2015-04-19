@@ -5,20 +5,12 @@ import scala.io.Source
 object CompilerTest {
   def main(args: Array[String]): Unit = {
     val lexer = Lexer()
-    val in = Source.fromString("1.2 + 2.75 * (3.32 / 4.981) - ((5.345 * 6.1) + 7.0001)").toStream
-    val tokens = lexer(in)
-    tokens foreach { println _ }
-
     val parser = Parser()
-    val expr = parser(tokens)
-    println(expr)
+    val optimizer = Optimizer()
+    val c = (lexer.apply _) andThen (parser.apply _) andThen (optimizer.apply _)
 
-    val in2 = Source.fromString("1+2+3+4 5").toStream
-    try {
-      val expr2 = parser(lexer(in2))
-      println(expr2)
-    } catch {
-      case e: Exception => println(e.getMessage)
-    }
+    val in = Source.fromString("1.2 + x * (3.32 / 4.981) - ((y * 6.1) + 7.0001) - z").toStream
+    val ast = c(in)
+    println(ast)
   }
 }

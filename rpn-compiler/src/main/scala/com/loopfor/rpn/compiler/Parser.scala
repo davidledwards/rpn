@@ -1,67 +1,83 @@
 package com.loopfor.rpn.compiler
 
+import scala.annotation.tailrec
+
 class Parser private () {
-  def apply(in: Stream[Token]): Expr = {
-    val (expr, rest) = p0(in)
+  def apply(in: Stream[Token]): AST = {
+    val (ast, rest) = p0(in)
     rest.headOption match {
-      case Some(t) =>
-        throw new Exception(s"${t.lexeme}: expecting ${EOSToken.lexeme}")
-      case None =>
-        expr
+      case Some(t) => throw new Exception(s"${t.lexeme}: expecting ${EOSToken.lexeme}")
+      case None => ast
     }
   }
 
-  private def p0(in: Stream[Token]): (Expr, Stream[Token]) = {
-    val (l, rest) = p1(in)
-    p0tail(l, rest)
-  }
-
-  private def p0tail(l: Expr, in: Stream[Token]): (Expr, Stream[Token]) = in.headOption match {
-    case Some(PlusToken) =>
-      val (r, rest) = p1(in.tail)
-      p0tail(AddExpr(l, r), rest)
-    case Some(MinusToken) =>
-      val (r, rest) = p1(in.tail)
-      p0tail(SubtractExpr(l, r), rest)
-    case _ =>
-      (l, in)
-  }
-
-  private def p1(in: Stream[Token]): (Expr, Stream[Token]) = {
+  /**
+   * p0 ::= <p2> <p1>
+   */
+  private def p0(in: Stream[Token]): (AST, Stream[Token]) = {
     val (l, rest) = p2(in)
-    p1tail(l, rest)
+    p1(l, rest)
   }
 
-  private def p1tail(l: Expr, in: Stream[Token]): (Expr, Stream[Token]) = in.headOption match {
+  /**
+   * p1 ::= '+' <p2> <p1>
+   *    ::= '-' <p2> <p1>
+   *    ::= e
+   */
+  @tailrec private def p1(l: AST, in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
+    case Some(PlusToken) =>
+      val (r, rest) = p2(in.tail)
+      p1(AddAST(l, r), rest)
+    case Some(MinusToken) =>
+      val (r, rest) = p2(in.tail)
+      p1(SubtractAST(l, r), rest)
+    case _ => (l, in)
+  }
+
+  /**
+   * p2 ::= <p4> <p3>
+   */
+  private def p2(in: Stream[Token]): (AST, Stream[Token]) = {
+    val (l, rest) = p4(in)
+    p3(l, rest)
+  }
+
+  /**
+   * p3 ::= '*' <p4> <p3>
+   *    ::= '/' <p4> <p3>
+   *    ::= e
+   */
+  @tailrec private def p3(l: AST, in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
     case Some(StarToken) =>
-      val (r, rest) = p2(in.tail)
-      p1tail(MultiplyExpr(l, r), rest)
+      val (r, rest) = p4(in.tail)
+      p3(MultiplyAST(l, r), rest)
     case Some(SlashToken) =>
-      val (r, rest) = p2(in.tail)
-      p1tail(DivideExpr(l, r), rest)
-    case _ =>
-      (l, in)
+      val (r, rest) = p4(in.tail)
+      p3(DivideAST(l, r), rest)
+    case _ => (l, in)
   }
 
-  private def p2(in: Stream[Token]): (Expr, Stream[Token]) = in.headOption match {
+  /**
+   * p4 ::= '(' <p0> ')'
+   *    ::= <symbol>
+   *    ::= <number>
+   */
+  private def p4(in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
     case Some(LeftParenToken) =>
-      val (expr, rest) = p0(in.tail)
-      (expr, confirm(rest, RightParenToken))
-    case Some(SymbolToken(lexeme)) =>
-      (SymbolExpr(lexeme), in.tail)
-    case Some(NumberToken(lexeme)) =>
-      (NumberExpr(lexeme.toDouble), in.tail)
+      val (ast, rest) = p0(in.tail)
+      (ast, confirm(rest, RightParenToken))
+    case Some(SymbolToken(lexeme)) => (SymbolAST(lexeme), in.tail)
+    case Some(NumberToken(lexeme)) => (NumberAST(lexeme.toDouble), in.tail)
     case t @ _ =>
       val lexeme = (t getOrElse EOSToken).lexeme
       throw new Exception(s"$lexeme: expecting '(', <symbol> or <number>")
   }
 
   private def confirm(in: Stream[Token], token: Token): Stream[Token] = in.headOption match {
-    case Some(t) if t == token =>
-      in.tail
+    case Some(t) if t == token => in.tail
     case t @ _ =>
       val lexeme = (t getOrElse EOSToken).lexeme
-      throw new Exception(s"$lexeme: expecting: '${token.lexeme}'")
+      throw new Exception(s"$lexeme: expecting '${token.lexeme}'")
   }
 }
 

@@ -3,6 +3,21 @@ A simple RPN compiler and interpreter for instructional purposes.
 
 This project was developed for use in a Cerner DevCon talk.
 
+# Grammar
+```
+p0 ::= <p2> <p1>
+p1 ::= '+' <p2> <p1>
+   ::= '-' <p2> <p1>
+   ::= e
+p2 ::= <p4> <p3>
+p3 ::= '*' <p4> <p3>
+   ::= '/' <p4> <p3>
+   ::= e
+p4 ::= '(' <p0> ')'
+   ::= <symbol>
+   ::= <number>
+```
+
 ## License
 Copyright 2015 David Edwards
 
