@@ -19,18 +19,21 @@ object CompilerTest {
           "1 + 2 * 3",
           "1 + 2 + 3 + 4",
           "1 + (2 * 3) + 4",
-          "x min y min z"
+          "x min y min z",
+          "1 + (2 * 3 * 5) + (6 / 7 / 8) + (9 min 10 min 11 min 12) + (x + y + z)"
           )
 
     examples foreach { s =>
       try {
         val in = Source.fromString(s).toStream
         val ast = c(in)
-        println(s"$s -> $ast")
+        println(s"\n$s -> $ast")
         val codes = generator(ast)
         codes foreach { c => println(c.repr) }
         println("---")
-        optimizer(codes)
+        val optimized = optimizer(codes)
+        println("---optimized---")
+        optimized foreach { c => println(c.repr) }
       } catch {
         case e: Exception => println(s"$s -> ${e.getMessage}")
       }

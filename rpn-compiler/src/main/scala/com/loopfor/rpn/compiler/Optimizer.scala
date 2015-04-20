@@ -3,19 +3,19 @@ package com.loopfor.rpn.compiler
 class Optimizer private () {
   def apply(codes: Seq[Code]): Seq[Code] = {
     simulate(codes)
-    aggregate(codes)
+    collapse(aggregate(codes))
   }
 
-  private def aggregate(codes: Seq[Code]): Seq[Code] = {
-    val ctors: Map[Class[_ <: ScalarCode], Int => ScalarCode] = Map(
-          classOf[AddCode] -> AddCode.apply _,
-          classOf[SubtractCode] -> SubtractCode.apply _,
-          classOf[MultiplyCode] -> MultiplyCode.apply _,
-          classOf[DivideCode] -> DivideCode.apply _,
-          classOf[MinCode] -> MinCode.apply _,
-          classOf[MaxCode] -> MaxCode.apply _
-          )
+  private val ctors: Map[Class[_ <: ScalarCode], Int => ScalarCode] = Map(
+        classOf[AddCode] -> AddCode.apply _,
+        classOf[SubtractCode] -> SubtractCode.apply _,
+        classOf[MultiplyCode] -> MultiplyCode.apply _,
+        classOf[DivideCode] -> DivideCode.apply _,
+        classOf[MinCode] -> MinCode.apply _,
+        classOf[MaxCode] -> MaxCode.apply _
+        )
 
+  private def aggregate(codes: Seq[Code]): Seq[Code] = {
     val (_, _, _, revs) = codes.foldLeft((0, 0, Map.empty[(String, Int), (Int, ScalarCode)], Map.empty[Int, Code])) {
       case ((pos, frame, candidates, revisions), code) =>
         lazy val eligible = candidates filter { case ((_, f), _) => f <= frame }
@@ -48,9 +48,45 @@ class Optimizer private () {
         (pos + 1, frame + f, c, r)
     }
 
-    println("revisions")
-    revs foreach { case (pos, code) => println(s"$pos: $code") }
-    codes
+    println("---aggregate revisions---")
+    revs.toSeq.sortBy { case (k, _) => k } foreach { case (pos, code) => println(s"$pos: $code") }
+    revise(codes, revs)
+  }
+
+  private def collapse(codes: Seq[Code]): Seq[Code] = {
+    val (_, _, revs) = codes.foldLeft((0, Option.empty[ScalarCode], Map.empty[Int, Code])) { case ((pos, prior, revisions), code) =>
+      val (_prior, _revisions) = code match {
+        case c: ScalarCode =>
+          prior match {
+            case Some(p) if (c.op == p.op) =>
+              val replace = ctors(c.getClass)(c.args + p.args - 1)
+              (Some(replace), revisions + (pos - 1 -> NopCode) + (pos -> replace))
+            case _ =>
+              (Some(c), revisions)
+          }
+        case _ =>
+          (None, revisions)
+      }
+      (pos + 1, _prior, _revisions)
+    }
+    println("---collapse revisions---")
+    revs.toSeq.sortBy { case (k, _) => k } foreach { case (pos, code) => println(s"$pos: $code") }
+    revise(codes, revs)
+  }
+
+  private def revise(codes: Seq[Code], revs: Map[Int, Code]): Seq[Code] = {
+    if (revs.isEmpty)
+      codes
+    else {
+      val (_, _codes) = codes.foldLeft((0, Seq.empty[Code])) { case ((pos, revised), code) =>
+        (pos + 1, (revs get pos) match {
+          case Some(NopCode) => revised
+          case Some(c) => c +: revised
+          case None => code +: revised
+        })
+      }
+      _codes.reverse
+    }
   }
 
   private def simulate(codes: Seq[Code]): Unit = {
