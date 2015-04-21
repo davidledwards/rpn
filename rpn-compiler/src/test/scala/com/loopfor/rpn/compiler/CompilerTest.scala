@@ -20,7 +20,9 @@ object CompilerTest {
           "1 + 2 + 3 + 4",
           "1 + (2 * 3) + 4",
           "x min y min z",
-          "1 + (2 * 3 * 5) + (6 / 7 / 8) + (9 min 10 min 11 min 12) + (x + y + z)"
+          "1 + (2 * 3 * 5) + (6 / 7 / 8) + (9 min 10 min 11 min 12) + (x + y + z)",
+          "1 + (x + 2 + 3) + y + 4",
+          "(x + 5) + y + 5"
           )
 
     examples foreach { s =>
@@ -30,7 +32,6 @@ object CompilerTest {
         println(s"\n$s -> $ast")
         val codes = generator(ast)
         codes foreach { c => println(c.repr) }
-        println("---")
         val optimized = optimizer(codes)
         println("---optimized---")
         optimized foreach { c => println(c.repr) }
