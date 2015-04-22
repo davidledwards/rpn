@@ -12,7 +12,7 @@ object CompilerTest {
     val cg = c andThen (generator.apply _) andThen (optimizer.apply _)
 
     val examples = Seq(
-          "1.2 + x pow y * (3.32 / 4.981 + y root (1 / x)) - ((y * 6.1) + 7.0001 + (x min y) % 4.23) - z % (t * 0.123)",
+          "1.2 + x ^ y * (3.32 / 4.981 + y ^ (1 / x)) - ((y * 6.1) + 7.0001 + (x min y) % 4.23) - z % (t * 0.123)",
           "1 + 2 + 3",
           "(1 + 2) + 3",
           "1 + (2 + 3)",
@@ -22,7 +22,9 @@ object CompilerTest {
           "x min y min z",
           "1 + (2 * 3 * 5) + (6 / 7 / 8) + (9 min 10 min 11 min 12) + (x + y + z)",
           "1 + (x + 2 + 3) + y + 4",
-          "(x + 5) + y + 5"
+          "(x + 5) + y + 5",
+          "2 ^ 3",
+          "8 ^ (1 / 3)"
           )
 
     examples foreach { s =>

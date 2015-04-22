@@ -40,9 +40,6 @@ class Generator private () {
       case PowerAST(base, exp) =>
         val (codes, syms) = generate(exp, generate(base, state))
         (PowerCode +: codes, syms)
-      case RootAST(n, exp) =>
-        val (codes, syms) = generate(exp, generate(n, state))
-        (RootCode +: codes, syms)
     }
     // Instruction codes are generated in reverse order and set of referenced
     // symbols is gather during traversal.

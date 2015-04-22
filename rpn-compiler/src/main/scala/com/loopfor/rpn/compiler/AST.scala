@@ -10,6 +10,5 @@ case class MultiplyAST(l: AST, r: AST) extends AST
 case class DivideAST(l: AST, r: AST) extends AST
 case class ModuloAST(l: AST, r: AST) extends AST
 case class PowerAST(base: AST, exp: AST) extends AST
-case class RootAST(n: AST, exp: AST) extends AST
 case class MinAST(l: AST, r: AST) extends AST
 case class MaxAST(l: AST, r: AST) extends AST

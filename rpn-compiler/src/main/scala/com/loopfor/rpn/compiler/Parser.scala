@@ -46,8 +46,7 @@ class Parser private () {
    * p3 ::= '*' <p4> <p3>
    *    ::= '/' <p4> <p3>
    *    ::= '%' <p4> <p3>
-   *    ::= 'pow' <p4> <p3>
-   *    ::= 'root' <p4> <p3>
+   *    ::= '^' <p4> <p3>
    *    ::= e
    */
   @tailrec private def p3(l: AST, in: Stream[Token]): (AST, Stream[Token]) = in.headOption match {
@@ -63,9 +62,6 @@ class Parser private () {
     case Some(PowerToken) =>
       val (r, rest) = p4(in.tail)
       p3(PowerAST(l, r), rest)
-    case Some(RootToken) =>
-      val (r, rest) = p4(in.tail)
-      p3(RootAST(l, r), rest) 
     case _ => (l, in)
   }
 

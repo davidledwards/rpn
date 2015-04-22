@@ -39,7 +39,6 @@ case class MaxCode(override val args: Int) extends DynamicScalarCode("max", args
 
 case object ModuloCode extends FixedScalarCode("mod", 2)
 case object PowerCode extends FixedScalarCode("pow", 2)
-case object RootCode extends FixedScalarCode("root", 2)
 
 case object NopCode extends BasicCode("nop")
 

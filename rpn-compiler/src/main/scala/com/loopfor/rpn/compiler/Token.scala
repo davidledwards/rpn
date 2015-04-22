@@ -7,10 +7,9 @@ case object MinusToken extends Token("-")
 case object StarToken extends Token("*")
 case object SlashToken extends Token("/")
 case object PercentToken extends Token("%")
+case object PowerToken extends Token("^")
 case object LeftParenToken extends Token("(")
 case object RightParenToken extends Token(")")
-case object PowerToken extends Token("pow")
-case object RootToken extends Token("root")
 case object MinToken extends Token("min")
 case object MaxToken extends Token("max")
 
@@ -26,13 +25,13 @@ object Token {
         StarToken.lexeme(0) -> StarToken,
         SlashToken.lexeme(0) -> SlashToken,
         PercentToken.lexeme(0) -> PercentToken,
+        PowerToken.lexeme(0) -> PowerToken,
         LeftParenToken.lexeme(0) -> LeftParenToken,
         RightParenToken.lexeme(0) -> RightParenToken
         )
 
   private val symbols: Map[String, Token] = Map(
         PowerToken.lexeme -> PowerToken,
-        RootToken.lexeme -> RootToken,
         MinToken.lexeme -> MinToken,
         MaxToken.lexeme -> MaxToken
         )

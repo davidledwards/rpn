@@ -1,5 +1,6 @@
 package com.loopfor.rpn.compiler
 
+import scala.math.{max, min, pow}
 import scala.annotation.tailrec
 
 class Optimizer private () {
@@ -26,8 +27,7 @@ class Optimizer private () {
 
   private val scalarCtors: Map[Class[_ <: Code], Int => Code] = Map(
         ModuloCode.getClass -> { _: Int => ModuloCode },
-        PowerCode.getClass -> { _: Int => PowerCode },
-        RootCode.getClass -> { _: Int => RootCode }
+        PowerCode.getClass -> { _: Int => PowerCode }
         ) ++ dynamicCtors
 
   private val scalarOps: Map[Class[_ <: Code], (Double, Double) => Double] = Map(
@@ -35,11 +35,10 @@ class Optimizer private () {
         classOf[SubtractCode] -> { _ - _ },
         classOf[MultiplyCode] -> { _ * _ },
         classOf[DivideCode] -> { _ / _ },
-        classOf[MinCode] -> { Math.min(_, _) },
-        classOf[MaxCode] -> { Math.max(_, _) },
+        classOf[MinCode] -> { min(_, _) },
+        classOf[MaxCode] -> { max(_, _) },
         ModuloCode.getClass -> { _ % _ },
-        PowerCode.getClass -> { (base, exp) => Math.pow(base, exp) },
-        RootCode.getClass -> { (n, exp) => Math.pow(n, 1 / exp) }
+        PowerCode.getClass -> { pow(_, _) }
         )
 
   private def flattenDynamicScalars(codes: Seq[Code]): Seq[Code] = {
@@ -104,7 +103,7 @@ class Optimizer private () {
           // apply the operation to each number in a left-to-right manner
           val total = (for (NumberValue(v, _) <- nums) yield v) reduceLeft scalarOps(code.getClass)
           // generate nop for all but the last push and modify last push with total
-          val revs = nums.init.foldLeft(Map.empty[Int, Code]) { case (r, num) => r + (num.pos -> NopCode) } +
+          val revs = (Map.empty[Int, Code] /: nums.init) { case (r, num) => r + (num.pos -> NopCode) } +
             (nums.last.pos -> PushCode(total))
           if (nums.size == code.args) {
             // when all arguments are numbers, eliminate the current op with a nop
@@ -147,7 +146,7 @@ class Optimizer private () {
     if (revs.isEmpty)
       codes
     else {
-      val (_, cs) = codes.foldLeft((0, Seq.empty[Code])) { case ((pos, revised), code) =>
+      val (_, cs) = ((0, Seq.empty[Code]) /: codes) { case ((pos, revised), code) =>
         (pos + 1, (revs get pos) match {
           case Some(NopCode) => revised
           case Some(c) => c +: revised
