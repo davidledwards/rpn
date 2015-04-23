@@ -31,7 +31,8 @@ object CompilerTest {
       try {
         val in = Source.fromString(s).toStream
         val ast = c(in)
-        println(s"\n$s -> $ast")
+        println(s"\n$s ->")
+        println(AST.format(ast))
         val codes = generator(ast)
         codes foreach { c => println(c.repr) }
         val optimized = optimizer(codes)
