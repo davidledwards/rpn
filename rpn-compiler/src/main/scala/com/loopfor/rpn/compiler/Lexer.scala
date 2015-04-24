@@ -2,9 +2,10 @@ package com.loopfor.rpn.compiler
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream
+import scala.util.Try
 
 class Lexer private () {
-  def apply(in: Stream[Char]): Stream[Token] = {
+  def apply(in: Stream[Char]): Try[Stream[Token]] = Try {
     def tokens(in: Stream[Char]): Stream[Token] = tokenize(in) match {
       case (EOSToken, _) => Stream.Empty
       case (token, rest) => token #:: tokens(rest)

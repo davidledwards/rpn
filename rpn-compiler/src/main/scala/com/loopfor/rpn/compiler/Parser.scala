@@ -1,9 +1,10 @@
 package com.loopfor.rpn.compiler
 
 import scala.annotation.tailrec
+import scala.util.Try
 
 class Parser private () {
-  def apply(in: Stream[Token]): AST = {
+  def apply(in: Stream[Token]): Try[AST] = Try {
     val (ast, rest) = p0(in)
     rest.headOption match {
       case Some(t) => throw new Exception(s"${t.lexeme}: expecting ${EOSToken.lexeme}")

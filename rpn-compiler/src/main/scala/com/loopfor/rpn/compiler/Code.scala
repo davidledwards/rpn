@@ -44,14 +44,15 @@ case object NopCode extends BasicCode("nop")
 
 object Codes {
   def format(codes: Seq[Code]): String = {
-    val (_, _, out) = ((0, 0, "") /: codes) { case ((pos, frame, out), c) =>
-      val f = c match {
-        case PushSymbolCode(_) => 1
-        case PushCode(_) => 1
-        case c: ScalarCode => 1 - c.args
-        case _ => 0
-      }
-      (pos + 1, frame + f, out + s"$pos [$frame] ${c.repr}\n")
+    val (_, _, out) = codes.foldLeft((0, 0, "")) {
+      case ((pos, frame, out), c) =>
+        val f = c match {
+          case PushSymbolCode(_) => 1
+          case PushCode(_) => 1
+          case c: ScalarCode => 1 - c.args
+          case _ => 0
+        }
+        (pos + 1, frame + f, out + s"$pos [$frame] ${c.repr}\n")
     }
     out
   }

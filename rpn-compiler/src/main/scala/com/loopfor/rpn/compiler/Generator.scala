@@ -1,7 +1,9 @@
 package com.loopfor.rpn.compiler
 
+import scala.util.Try
+
 class Generator private () {
-  def apply(ast: AST): Seq[Code] = {
+  def apply(ast: AST): Try[Seq[Code]] = Try {
     generate(ast)
   }
 

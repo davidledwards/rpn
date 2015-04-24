@@ -1,10 +1,11 @@
 package com.loopfor.rpn.compiler
 
-import scala.math.{max, min, pow}
 import scala.annotation.tailrec
+import scala.math.{max, min, pow}
+import scala.util.Try
 
 class Optimizer private () {
-  def apply(codes: Seq[Code]): Seq[Code] = {
+  def apply(codes: Seq[Code]): Try[Seq[Code]] = Try {
     @tailrec def optimize(codes: Seq[Code]): Seq[Code] = {
       val to = transform(codes)
       if (to.size < codes.size) optimize(to) else to

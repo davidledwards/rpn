@@ -1,16 +1,10 @@
 package com.loopfor.rpn.compiler
 
 import scala.io.Source
+import scala.util.{Failure, Success}
 
 object CompilerTest {
   def main(args: Array[String]): Unit = {
-    val lexer = Lexer()
-    val parser = Parser()
-    val generator = Generator()
-    val optimizer = Optimizer()
-    val c = (lexer.apply _) andThen (parser.apply _)
-    val cg = c andThen (generator.apply _) andThen (optimizer.apply _)
-
     val examples = Seq(
           "1.2 + x ^ y * (3.32 / 4.981 + y ^ (1 / x)) - ((y * 6.1) + 7.0001 + (x min y) % 4.23) - z % (t * 0.123)",
           "1 + 2 + 3",
@@ -28,18 +22,23 @@ object CompilerTest {
           )
 
     examples foreach { s =>
-      try {
-        val in = Source.fromString(s).toStream
-        val ast = c(in)
-        println(s"\n$s ->")
+      println(s"\n$s ->")
+      val in = Source.fromString(s).toStream
+      Lexer()(in) flatMap { tokens =>
+        Parser()(tokens)
+      } flatMap { ast =>
         println(AST.format(ast))
-        val codes = generator(ast)
-        codes foreach { c => println(c.repr) }
-        val optimized = optimizer(codes)
-        println("---optimized---")
-        optimized foreach { c => println(c.repr) }
-      } catch {
-        case e: Exception => println(s"$s -> ${e.getMessage}")
+        Generator()(ast)
+      } flatMap { unopt =>
+        println("---unoptimized---")
+        for (c <- unopt) println(c.repr)
+        Optimizer()(unopt)
+      } match {
+        case Success(codes) =>
+          println("---optimized---")
+          for (c <- codes) println(c.repr)
+        case Failure(e) =>
+          println(e.getMessage)
       }
     }
   }
