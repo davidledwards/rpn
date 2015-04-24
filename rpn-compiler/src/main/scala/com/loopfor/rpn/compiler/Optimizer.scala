@@ -4,14 +4,16 @@ import scala.annotation.tailrec
 import scala.math.{max, min, pow}
 import scala.util.Try
 
+/**
+ * An optimizer that transforms a sequence of instructions into another sequence of
+ * instructions.
+ */
 class Optimizer private () {
   def apply(codes: Seq[Code]): Try[Seq[Code]] = Try {
     @tailrec def optimize(codes: Seq[Code]): Seq[Code] = {
       val to = transform(codes)
       if (to.size < codes.size) optimize(to) else to
     }
-    println("---original code---")
-    println(Codes.format(codes))
     optimize(codes)
   }
 
@@ -129,8 +131,6 @@ class Optimizer private () {
         }
         (pos + 1, frame + f, c, r)
     }
-    println("---combine revisions---")
-    printRevisions(revs)
     revise(codes, revs)
   }
 
@@ -209,8 +209,6 @@ class Optimizer private () {
         }
         (pos + 1, p, r)
     }
-    println("---flatten revisions---")
-    printRevisions(revs)
     revise(codes, revs)
   }
 
@@ -304,12 +302,7 @@ class Optimizer private () {
 
     @tailrec def evaluate(codes: Seq[Code]): Seq[Code] = {
       val revs = analyze(0, codes, Seq.empty)
-      if (revs.isEmpty) codes
-      else {
-        println("---evaluate revisions---")
-        printRevisions(revs)
-        evaluate(revise(codes, revs))
-      }
+      if (revs.isEmpty) codes else evaluate(revise(codes, revs))
     }
     evaluate(codes)
   }
@@ -327,10 +320,6 @@ class Optimizer private () {
       }
       cs.reverse
     }
-  }
-
-  private def printRevisions(revs: Map[Int, Code]): Unit = {
-    revs.toSeq.sortBy { case (p, _) => p } foreach { case (pos, code) => println(s"$pos: $code") }
   }
 }
 

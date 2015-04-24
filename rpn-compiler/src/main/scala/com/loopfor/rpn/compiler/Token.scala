@@ -1,5 +1,25 @@
 package com.loopfor.rpn.compiler
 
+/**
+ * Represents a token recognized in the input stream.
+ * 
+ * Recognized tokens defined as regular expressions:
+ * {{{
+ * Plus = +
+ * Minus = -
+ * Star = *
+ * Slash = /
+ * Percent = %
+ * Power = ^
+ * LeftParen = (
+ * RightParen = )
+ * Min = min
+ * Max = max
+ * Symbol = [A-Za-z]+
+ * Number = ([0-9]+)|([0-9]+\.[0-9]+)
+ * EOS = <end of stream>
+ * }}}
+ */
 sealed abstract class Token(val lexeme: String)
 
 case object PlusToken extends Token("+")

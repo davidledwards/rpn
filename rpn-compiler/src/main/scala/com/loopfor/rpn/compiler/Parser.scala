@@ -3,6 +3,30 @@ package com.loopfor.rpn.compiler
 import scala.annotation.tailrec
 import scala.util.Try
 
+/**
+ * A recursive-descent parser that transforms a stream of tokens into a syntax tree.
+ * 
+ * Grammar:
+ * {{{
+ * p0 ::= <p2> <p1>
+ * p1 ::= '+' <p2> <p1>
+ *    ::= '-' <p2> <p1>
+ *    ::= e
+ * p2 ::= <p4> <p3>
+ * p3 ::= '*' <p4> <p3>
+ *    ::= '/' <p4> <p3>
+ *    ::= '%' <p4> <p3>
+ *    ::= '^' <p4> <p3>
+ *    ::= e
+ * p4 ::= <p6> <p5>
+ * p5 ::= 'min' <p6> <p5>
+ *    ::= 'max' <p6> <p5>
+ *    ::= e
+ * p6 ::= '(' <p0> ')'
+ *    ::= <symbol>
+ *    ::= <number>
+ * }}}
+ */
 class Parser private () {
   def apply(in: Stream[Token]): Try[AST] = Try {
     val (ast, rest) = p0(in)

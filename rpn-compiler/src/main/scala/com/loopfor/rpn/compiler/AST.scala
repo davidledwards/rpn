@@ -2,6 +2,9 @@ package com.loopfor.rpn.compiler
 
 import scala.annotation.tailrec
 
+/**
+ * Represents a syntax tree constructed by parsing a stream of tokens.
+ */
 sealed trait AST
 
 case class SymbolAST(name: String) extends AST

@@ -2,6 +2,11 @@ package com.loopfor.rpn.compiler
 
 import scala.util.Try
 
+/**
+ * A code generator that transforms a syntax tree to a sequence of instructions.
+ * 
+ * The instruction sequence should be considered unoptimized.
+ */
 class Generator private () {
   def apply(ast: AST): Try[Seq[Code]] = Try {
     generate(ast)
@@ -45,7 +50,7 @@ class Generator private () {
     }
     // Instruction codes are generated in reverse order and set of referenced
     // symbols is gather during traversal.
-    val (codes, syms) = generate(ast, (Seq(), Set()))
+    val (codes, syms) = generate(ast, (Seq.empty, Set.empty))
 
     // Map set of symbol names to declarations and prepend to instruction codes.
     val decls = syms.toSeq.sorted map { name => DeclareSymbolCode(name) }

@@ -27,16 +27,17 @@ object CompilerTest {
       Lexer()(in) flatMap { tokens =>
         Parser()(tokens)
       } flatMap { ast =>
+        println("---syntax tree---")
         println(AST.format(ast))
         Generator()(ast)
       } flatMap { unopt =>
         println("---unoptimized---")
-        for (c <- unopt) println(c.repr)
+        println(Codes.format(unopt))
         Optimizer()(unopt)
       } match {
         case Success(codes) =>
           println("---optimized---")
-          for (c <- codes) println(c.repr)
+          println(Codes.format(codes))
         case Failure(e) =>
           println(e.getMessage)
       }
