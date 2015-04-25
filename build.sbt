@@ -47,33 +47,14 @@ lazy val eclipseSettings = Seq(
 lazy val commonSettings =
   projectSettings ++ compilerSettings ++ publishSettings ++ eclipseSettings
 
-lazy val compilerProject = (project in file("rpn-compiler")).
-  settings(commonSettings: _*).
-  settings(
-    name := "rpn-compiler",
-    description := "RPN Compiler"
-  ).
-  settings(packSettings).
-  settings(
-    packMain := Map("rpnc" -> "com.loopfor.rpn.compiler.Compiler")
-  )
-
-lazy val interpreterProject = (project in file("rpn-interpreter")).
-  settings(commonSettings: _*).
-  settings(
-    name := "rpn-interpreter",
-    description := "RPN Interpreter"
-  ).
-  settings(packSettings).
-  settings(
-    packMain := Map("rpn" -> "com.loopfor.rpn.interpreter.Interpreter")
-  )
-
 lazy val rootProject = (project in file(".")).
-  aggregate(compilerProject, interpreterProject).
   settings(commonSettings: _*).
   settings(
     name := "rpn",
-    description := "RPN Compiler and Interpreter",
-    skipProject := true
+    description := "RPN Compiler and Interpreter"
+  ).
+  settings(packSettings).
+  settings(
+    packMain := Map("rpnc" -> "com.loopfor.rpn.compiler.Compiler",
+                    "rpn" -> "com.loopfor.rpn.interpreter.Interpreter")
   )
