@@ -1,4 +1,4 @@
-package com.loopfor.rpn.compiler
+package com.loopfor.rpn
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream

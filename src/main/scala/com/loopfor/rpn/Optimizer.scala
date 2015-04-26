@@ -1,8 +1,6 @@
-package com.loopfor.rpn.compiler
+package com.loopfor.rpn
 
-import com.loopfor.rpn.interpreter.Evaluator.scalarOp
 import scala.annotation.tailrec
-import scala.math.{max, min, pow}
 import scala.util.Try
 
 /**
@@ -33,18 +31,6 @@ class Optimizer private () {
         ModuloCode.getClass -> { _: Int => ModuloCode },
         PowerCode.getClass -> { _: Int => PowerCode }
         ) ++ dynamicCtors
-/*
-  private val scalarOps: Map[Class[_ <: Code], (Double, Double) => Double] = Map(
-        classOf[AddCode] -> { _ + _ },
-        classOf[SubtractCode] -> { _ - _ },
-        classOf[MultiplyCode] -> { _ * _ },
-        classOf[DivideCode] -> { _ / _ },
-        classOf[MinCode] -> { min(_, _) },
-        classOf[MaxCode] -> { max(_, _) },
-        ModuloCode.getClass -> { _ % _ },
-        PowerCode.getClass -> { pow(_, _) }
-        )
-*/
 
   /**
    * An optimization that combines a series of identical operations as they appear in the
@@ -275,6 +261,7 @@ class Optimizer private () {
       def inspect(code: ScalarCode): (Map[Int, Code], Seq[Value]) = {
         val nums = for (arg @ NumberValue(_, _) <- (stack take code.args).reverse) yield arg
         val revs = if (nums.size > 1) {
+          import Evaluator.scalarOp
           // Expression with multiple literals is detected, so do the following:
           // - replace all but last `push` instruction with `nop`
           // - modify last `push` with precomputed value

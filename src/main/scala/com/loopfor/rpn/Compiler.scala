@@ -1,6 +1,5 @@
-package com.loopfor.rpn.compiler
+package com.loopfor.rpn
 
-import scala.collection.immutable.Stream
 import scala.io.Source
 import scala.util.{Failure, Success}
 

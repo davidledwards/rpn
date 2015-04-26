@@ -1,6 +1,5 @@
-package com.loopfor.rpn.interpreter
+package com.loopfor.rpn
 
-import com.loopfor.rpn.compiler.{Code, Codes}
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream
 

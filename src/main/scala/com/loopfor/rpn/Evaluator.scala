@@ -1,6 +1,5 @@
-package com.loopfor.rpn.interpreter
+package com.loopfor.rpn
 
-import com.loopfor.rpn.compiler._
 import scala.annotation.tailrec
 import scala.math.{max, min, pow}
 

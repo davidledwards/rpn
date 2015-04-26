@@ -1,6 +1,5 @@
-package com.loopfor.rpn.interpreter
+package com.loopfor.rpn
 
-import com.loopfor.rpn.compiler._
 import scala.io.{Source, StdIn}
 import scala.util.{Failure, Success}
 

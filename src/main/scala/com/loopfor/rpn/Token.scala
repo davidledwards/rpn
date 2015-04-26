@@ -1,4 +1,4 @@
-package com.loopfor.rpn.compiler
+package com.loopfor.rpn
 
 /**
  * Represents a token recognized in the input stream.
