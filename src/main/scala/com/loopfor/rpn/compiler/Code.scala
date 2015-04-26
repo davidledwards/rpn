@@ -26,13 +26,13 @@ sealed abstract class Code(val op: String) {
 }
 
 abstract class BasicCode(op: String) extends Code(op) {
-  val repr = s"$op"
+  val repr = op
 }
 
 abstract class ScalarCode(op: String, val args: Int) extends Code(op)
 
 abstract class FixedScalarCode(op: String, args: Int) extends ScalarCode(op, args) {
-  val repr = s"$op"
+  val repr = op
 }
 
 abstract class DynamicScalarCode(op: String, args: Int) extends ScalarCode(op, args) {

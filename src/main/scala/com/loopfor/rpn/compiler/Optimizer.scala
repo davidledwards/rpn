@@ -1,5 +1,6 @@
 package com.loopfor.rpn.compiler
 
+import com.loopfor.rpn.interpreter.Evaluator.scalarOp
 import scala.annotation.tailrec
 import scala.math.{max, min, pow}
 import scala.util.Try
@@ -32,7 +33,7 @@ class Optimizer private () {
         ModuloCode.getClass -> { _: Int => ModuloCode },
         PowerCode.getClass -> { _: Int => PowerCode }
         ) ++ dynamicCtors
-
+/*
   private val scalarOps: Map[Class[_ <: Code], (Double, Double) => Double] = Map(
         classOf[AddCode] -> { _ + _ },
         classOf[SubtractCode] -> { _ - _ },
@@ -43,6 +44,7 @@ class Optimizer private () {
         ModuloCode.getClass -> { _ % _ },
         PowerCode.getClass -> { pow(_, _) }
         )
+*/
 
   /**
    * An optimization that combines a series of identical operations as they appear in the
@@ -278,7 +280,7 @@ class Optimizer private () {
           // - modify last `push` with precomputed value
           // - eliminate entire operation if entire expression composed of literals
           // - otherwise, modify operation to reflect reduction in arguments
-          val value = (for (NumberValue(v, _) <- nums) yield v) reduceLeft scalarOps(code.getClass)
+          val value = (for (NumberValue(v, _) <- nums) yield v) reduceLeft scalarOp(code.getClass)
           val rs = nums.init.foldLeft(Map.empty[Int, Code]) { case (r, num) => r + (num.pos -> NopCode) }
           rs + (nums.last.pos -> PushCode(value)) +
             (if (nums.size == code.args) (pos -> NopCode)
