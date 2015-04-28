@@ -7,6 +7,10 @@ demonstrate construction of a simple compiler using a purely functional style. W
 I/O side effects to accept expressions as input and various steps that produce output, the compiler
 is purely functional.
 
+The compiler is designed to accept very simple expressions in standard infix notation and generate
+instructions that an interpreter can evaluate in postfix form using a stack, hence the reference to
+RPN (reverse polish notation).
+
 ## Grammar
 The language recognized by the compiler is specified by the following BNF-style grammar. The input
 is essentially simple mathematical expressions using infix notation. It is worth noting that the
@@ -181,7 +185,7 @@ add 2
 
 An optimized compilation using the `-o` option:
 ```
-$ echo "x + 1 + y + 2" | rpnc
+$ echo "x + 1 + y + 2" | rpnc -o
 sym x
 sym y
 pushsym x
@@ -230,8 +234,8 @@ To see other options:
 $ rpn -?
 ```
 
-The interpreter can be instructed to produce a list of symbols occurring in the instruction
-sequence provided as input. It does not attempt evaluation. This option is useful to discover
+The interpreter can be asked to produce a list of symbols occurring in the instruction sequence
+provided as input. If so, it does not attempt evaluation. This option is useful to discover
 symbols that must be bound prior to evaluation.
 
 To print the list of symbols, use the `-s` option:
@@ -240,6 +244,39 @@ $ echo "(a ^ 2 + b ^ 2) ^ (1 / 2)" | rpnc | rpn -s
 a
 b
 ```
+
+## Internals
+In order to demonstrate the use of functional style, the compiler is essentially a composition of
+functions that represent the various stages one might see in a typical design.
+
+The stages of compilation and their order of execution follows:
+* Tokenize
+* Parse
+* Generate
+* Optimize
+
+The output of a prior stage is input to the next, as can be seen by the type signatures of each
+function.
+
+### Tokenize: `Stream[Char]` => `Stream[Token]`
+Tokenization, or lexical analysis, transforms a stream of characters into a stream of tokens.
+
+### Parse: `Stream[Token]` => `AST`
+Parsing transforms a stream of tokens into an abstract syntax tree.
+
+### Generate: `AST` => `Seq[Code]`
+Generation transforms an abstract syntax tree into a sequence of unoptimized instructions.
+
+### Optimize: `Seq[Code]` => `Seq[Code]`
+Optimization transforms a sequence of instructions into a sequence of optimized instructions.
+
+These functions are composed to form a pipeline that conforms to the following type signature:
+`Stream[Char]` => `Seq[Code]`. In essence, an expression in the input stream can be fed into the
+pipeline, producting a sequence of instructions that can be written to the output stream.
+
+The only necessary side effects that occur in this program are those that exists in
+`Compiler.scala` and `Interpreter.scala`, in which `stdin` and `stdout` are wired into their
+respective pipelines.
 
 ## License
 Copyright 2015 David Edwards
