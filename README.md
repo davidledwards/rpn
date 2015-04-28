@@ -41,8 +41,21 @@ x + 1
 
 ## Usage
 ### Compiler
-The compiler reads an expression on `stdin` conforming to the aforementioned grammar and
+The compiler reads an expression on `stdin` conforming to the aforementioned grammar and emits a
+sequence of instructions that can be executed by the interpreter.
+
+Example:
 ```
+$ echo "x + 1" | rpnc
+sym x
+pushsym x
+push 1.0
+add 2
+```
+
+To see other options:
+```
+$ rpnc -?
 ```
 
 ### Interpreter
