@@ -54,10 +54,78 @@ x + 1
 (a ^ 2 + b ^ 2) ^ (1 / 2)
 ```
 
+## Instructions
+The interpreter understands the following instruction set, a sequence of which is produced by the
+compiler. Each instruction must be separated by a newline and there can be no blank lines. The
+instruction loader is tolerant to extraneous whitespace on a per-instruction basis, such as leading
+or trailing spaces.
+```
+sym <symbol>
+pushsym <symbol>
+push <number>
+add <args>
+sub <args>
+mul <args>
+div <args>
+min <args>
+max <args>
+mod
+pow
+nop
+```
+
+### `sym <symbol>`
+Declares `<symbol>`, which allows the interpreter to bind `<symbol>` to a value in its execution
+environment.
+
+### `pushsym <symbol>`
+Pushes the value of `<symbol>` onto the evaluation stack, which implies that it must have been
+previously bound with the `sym` instruction.
+
+### `push <number>`
+Pushes `<number>` onto the evaluation stack.
+
+### `add <args>`
+Pops `<args>` operands from the evaluation stack, computes the sum, and pushes the result
+onto the evaluation stack.
+
+### `sub <args>`
+Pops `<args>` operands from the evaluation stack, computes the difference, and pushes the result
+onto the evaluation stack.
+
+### `mul <args>`
+Pops `<args>` operands from the evaluation stack, computes the product, and pushes the result
+onto the evaluation stack.
+
+### `div <args>`
+Pops `<args>` operands from the evaluation stack, computes the quotient, and pushes the result
+onto the evaluation stack.
+
+### `min <args>`
+Pops `<args>` operands from the evaluation stack, computes the minimum, and pushes the result
+onto the evaluation stack.
+
+### `max <args>`
+Pops `<args>` operands from the evaluation stack, computes the maximum, and pushes the result
+onto the evaluation stack.
+
+### `mod`
+Pops two (2) operands from the evaluation stack, computes the remainder, and pushes the result
+onto the evaluation stack.
+
+### `pow`
+Pops two (2) operands from the evaluation stack, computes the exponentiation, and pushes the result
+onto the evaluation stack.
+
+### `nop`
+An instruction that has no effect. This is used by the compiler during the optimization phase,
+but typically never appears in the final output. Nonetheless, the interpreter will still
+recognize this instruction.
+
 ## Usage
 ### Compiler `rpnc`
 The compiler reads an expression on `stdin` conforming to the aforementioned grammar and emits a
-sequence of instructions that can be executed by the interpreter.
+sequence of instructions to `stdout` that can be executed by the interpreter.
 
 Example:
 ```
@@ -123,6 +191,55 @@ add 3
 ```
 
 ### Interpreter `rpn`
+The interpreter reads and evaluates a sequence of instructions from `stdin` and writes the result
+to `stdout`.
+
+Given the input file `foo.i`:
+```
+push 1
+push 2
+add 2
+```
+
+The interpreter evaluates instructions in `foo.i`:
+```
+$ cat foo.i | rpn
+3.0
+```
+
+Another method is to pipe the output of the compiler as input to the interpreter:
+```
+$ echo "1 + 2" | rpnc | rpn
+3.0
+```
+
+Typically, an instruction sequence will have symbol declarations that must be bound to values
+before the interpreter can evaluate. This is achieved by passing pairs of symbol/value bindings as
+arguments to the interpreter. Consider the expression `(a ^ 2 + b ^ 2) ^ (1 / 2)`, which computes
+the hypotenuse of a right triangle. The lengths of the other sides, `a` and `b`, must be provided
+during evaluation.
+
+Symbols are bound to values by passing as arguments:
+```
+$ echo "(a ^ 2 + b ^ 2) ^ (1 / 2)" | rpnc | rpn a 4 b 3
+5.0
+```
+
+To see other options:
+```
+$ rpn -?
+```
+
+The interpreter can be instructed to produce a list of symbols occurring in the instruction
+sequence provided as input. It does not attempt evaluation. This option is useful to discover
+symbols that must be bound prior to evaluation.
+
+To print the list of symbols, use the `-s` option:
+```
+$ echo "(a ^ 2 + b ^ 2) ^ (1 / 2)" | rpnc | rpn -s
+a
+b
+```
 
 ## License
 Copyright 2015 David Edwards
