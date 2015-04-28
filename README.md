@@ -9,7 +9,15 @@ is purely functional.
 
 ## Grammar
 The language recognized by the compiler is specified by the following BNF-style grammar. The input
-is essentially simple mathematical expressions using infix notation.
+is essentially simple mathematical expressions using infix notation. It is worth noting that the
+grammar is defined in such a way that a recursive-descent parser can be easily constructed, which is
+the method used in this project. The grammar also reflects the natural precedence of operators. As a
+simple rule of thumb, the farther down in the grammar, the higher the precedence.
+
+`e` stands for epsilon, which means the nonterminal on the left hand side can also be an empty
+production. See [this article](https://www.cs.rochester.edu/~nelson/courses/csc_173/grammars/cfg.html)
+for an introduction to context-free grammars.
+
 ```
 p0 ::= <p2> <p1>
 p1 ::= '+' <p2> <p1>
@@ -30,6 +38,13 @@ p6 ::= '(' <p0> ')'
    ::= <number>
 ```
 
+### Tokens
+The following nontrivial tokens are specified as regular expressions.
+```
+<symbol> = [a-zA-Z]+
+<number> = \d+|\d+\.\d+
+```
+
 ### Examples
 ```
 x + 1
@@ -40,7 +55,7 @@ x + 1
 ```
 
 ## Usage
-### Compiler
+### Compiler `rpnc`
 The compiler reads an expression on `stdin` conforming to the aforementioned grammar and emits a
 sequence of instructions that can be executed by the interpreter.
 
@@ -58,9 +73,56 @@ To see other options:
 $ rpnc -?
 ```
 
-### Interpreter
+The compiler can also be instructed to only tokenize the input or only produce a syntax tree, which
+means the output cannot be executed by the interpreter. These features are provided to examine the
+output from various phases of the compilation pipeline.
+
+To tokenize only, which emits a list of tokens, use `-t` option:
 ```
+$ echo "x + 1" | rpnc -t
+SymbolToken(x)
+PlusToken
+NumberToken(1)
 ```
+
+To parse only, which emits a syntax tree, use `-p` option:
+```
+$ echo "x + 1" | rpnc -p
+Add
+  Symbol(x)
+  Number(1.0)
+```
+
+Finally, the compiler can be instructed to perform an optimization over the sequence of instructions,
+which is disabled by default. The methods of optimization are documented in the source code (see
+`Optimizer.scala`).
+
+An unoptimized compilation:
+```
+$ echo "x + 1 + y + 2" | rpnc
+sym x
+sym y
+pushsym x
+push 1.0
+add 2
+pushsym y
+add 2
+push 2.0
+add 2
+```
+
+An optimized compilation using the `-o` option:
+```
+$ echo "x + 1 + y + 2" | rpnc
+sym x
+sym y
+pushsym x
+pushsym y
+push 3.0
+add 3
+```
+
+### Interpreter `rpn`
 
 ## License
 Copyright 2015 David Edwards
