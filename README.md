@@ -272,9 +272,9 @@ Optimization transforms a sequence of instructions into a sequence of optimized 
 
 These functions are composed to form a pipeline that conforms to the following type signature:
 `Stream[Char]` => `Seq[Code]`. In essence, an expression in the input stream can be fed into the
-pipeline, producting a sequence of instructions that can be written to the output stream.
+pipeline, producing a sequence of instructions that can be written to the output stream.
 
-The only necessary side effects that occur in this program are those that exists in
+The only necessary side effects that occur in this program are those that exist in
 `Compiler.scala` and `Interpreter.scala`, in which `stdin` and `stdout` are wired into their
 respective pipelines.
 
