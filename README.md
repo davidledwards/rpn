@@ -11,6 +11,27 @@ The compiler is designed to accept very simple expressions in standard infix not
 instructions that an interpreter can evaluate in postfix form using a stack, hence the reference to
 RPN (reverse polish notation).
 
+## Building
+This project is built using [sbt](http://www.scala-sbt.org/0.13/tutorial/Setup.html). After installing
+`sbt`, clone the repository and issue the command `sbt packArchive` in the root directory of the project.
+This produces a redistributable assembly in the form of a single file, either
+`target/rpn-<version>.tar.gz` or `target/rpn-<version>.zip`.
+
+Unpacking the assembly produces a directory structure with the following format:
+```
+rpn-<version>/
++ bin/
+  + rpnc
+  + rpnc.bat
+  + rpn
+  + rpn.bat
++ lib/
+  ...
+```
+
+For convenience, you might place `rpn-<version>/bin/rpnc` and `rpn-<version>/bin/rpn` in your `PATH` or
+create an alias.
+
 ## Grammar
 The language recognized by the compiler is specified by the following BNF-style grammar. The input
 is essentially simple mathematical expressions using infix notation. It is worth noting that the
