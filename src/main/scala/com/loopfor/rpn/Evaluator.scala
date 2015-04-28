@@ -2,18 +2,19 @@ package com.loopfor.rpn
 
 import scala.annotation.tailrec
 import scala.math.{max, min, pow}
+import scala.util.Try
 
 /**
  * An evaluator that computes the result of an instruction sequence.
  */
 trait Evaluator {
-  def apply(codes: Stream[Code]): Double
+  def apply(codes: Stream[Code]): Try[Double]
 }
 
 private class BasicEvaluator(val resolver: String => Double) extends Evaluator {
   import BasicEvaluator._
 
-  def apply(codes: Stream[Code]): Double = {
+  def apply(codes: Stream[Code]): Try[Double] = Try {
     @tailrec def evaluate(codes: Stream[Code],
                           stack: Seq[Double],
                           syms: Map[String, Double]): Double = codes.headOption match {
@@ -48,6 +49,7 @@ private class BasicEvaluator(val resolver: String => Double) extends Evaluator {
 
 object BasicEvaluator {
   def apply(resolver: String => Double): Evaluator = new BasicEvaluator(resolver)
+  def apply(codes: Stream[Code])(resolver: String => Double): Try[Double] = apply(resolver)(codes)
 
   val scalarOp: Map[Class[_ <: ScalarCode], (Double, Double) => Double] = Map(
     classOf[AddCode] -> { _ + _ },

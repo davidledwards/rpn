@@ -32,13 +32,25 @@ object InterpreterTest {
           println("---write---")
           val out = (for (code <- codes) yield code.repr).mkString("\n")
           println(out)
-          val cs = loader(Source.fromString(out).toStream)
-          println("---read---")
-          for (c <- cs) println(c.repr)
-          println("---answer---")
-          val res = evaluator(cs)
-          println(res)
-          println()
+          (for {
+            cs <- loader(Source.fromString(out).toStream)
+          } yield cs) match {
+            case Success(cs) =>
+              println("---read---")
+              for (c <- cs) println(c.repr)
+              println("---answer---")
+              (for {
+                res <- evaluator(cs)
+              } yield res) match {
+                case Success(res) =>
+                  println(res)
+                  println()
+                case Failure(e) =>
+                  println(e.getMessage)
+              }
+            case Failure(e) =>
+              println(e.getMessage)
+          }
         case Failure(e) =>
           println(e.getMessage)
       }

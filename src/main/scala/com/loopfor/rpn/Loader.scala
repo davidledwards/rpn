@@ -2,17 +2,18 @@ package com.loopfor.rpn
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream
+import scala.util.Try
 
 /**
  * An instruction loader that transforms a stream of characters into a stream of
  * instructions.
  */
 trait Loader {
-  def apply(in: Stream[Char]): Stream[Code]
+  def apply(in: Stream[Char]): Try[Stream[Code]]
 }
 
 private class BasicLoader extends Loader {
-  def apply(in: Stream[Char]): Stream[Code] = {
+  def apply(in: Stream[Char]): Try[Stream[Code]] = Try {
     def load(in: Stream[Char]): Stream[Code] = read(in) match {
       case (null, _) => Stream.empty
       case (repr, rest) =>
@@ -36,4 +37,5 @@ private class BasicLoader extends Loader {
 
 object BasicLoader {
   def apply(): Loader = new BasicLoader
+  def apply(in: Stream[Char]): Try[Stream[Code]] = apply()(in)
 }

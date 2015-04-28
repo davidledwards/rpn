@@ -170,6 +170,13 @@ object Codes {
     out
   }
 
+  def symbols(codes: Seq[Code]): Seq[String] = {
+    codes flatMap {
+      case DeclareSymbolCode(name) => Seq(name)
+      case _ => Seq()
+    }
+  }
+
   def parse(repr: String): Option[Code] = repr match {
     case DeclareSymbolCode.pattern(name) => Some(DeclareSymbolCode(name))
     case PushSymbolCode.pattern(name) => Some(PushSymbolCode(name))
