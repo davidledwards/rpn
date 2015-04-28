@@ -5,12 +5,12 @@ import scala.util.{Failure, Success}
 
 object InterpreterTest {
   def main(args: Array[String]): Unit = {
-    val lexer = Lexer()
-    val parser = Parser()
-    val generator = Generator()
-    val optimizer = Optimizer()
-    val loader = Loader()
-    val evaluator = Evaluator { name =>
+    val lexer = BasicLexer()
+    val parser = BasicParser()
+    val generator = BasicGenerator()
+    val optimizer = BasicOptimizer()
+    val loader = BasicLoader()
+    val evaluator = BasicEvaluator { name =>
       print(s"$name? ")
       StdIn.readDouble()
     }

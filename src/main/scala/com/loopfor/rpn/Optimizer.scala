@@ -1,13 +1,17 @@
 package com.loopfor.rpn
 
 import scala.annotation.tailrec
-import scala.util.Try
+import scala.util.{Success, Try}
 
 /**
  * An optimizer that transforms a sequence of instructions into another sequence of
  * instructions.
  */
-class Optimizer private () {
+trait Optimizer {
+  def apply(codes: Seq[Code]): Try[Seq[Code]]
+}
+
+private class BasicOptimizer extends Optimizer {
   def apply(codes: Seq[Code]): Try[Seq[Code]] = Try {
     @tailrec def optimize(codes: Seq[Code]): Seq[Code] = {
       val to = transform(codes)
@@ -261,7 +265,7 @@ class Optimizer private () {
       def inspect(code: ScalarCode): (Map[Int, Code], Seq[Value]) = {
         val nums = for (arg @ NumberValue(_, _) <- (stack take code.args).reverse) yield arg
         val revs = if (nums.size > 1) {
-          import Evaluator.scalarOp
+          import BasicEvaluator.scalarOp
           // Expression with multiple literals is detected, so do the following:
           // - replace all but last `push` instruction with `nop`
           // - modify last `push` with precomputed value
@@ -312,6 +316,14 @@ class Optimizer private () {
   }
 }
 
-object Optimizer {
-  def apply(): Optimizer = new Optimizer
+object BasicOptimizer {
+  def apply(): Optimizer = new BasicOptimizer
+  def apply(codes: Seq[Code]): Try[Seq[Code]] = apply()(codes)
+}
+
+object DisabledOptimizer {
+  def apply(): Optimizer = new Optimizer {
+    def apply(codes: Seq[Code]): Try[Seq[Code]] = Success(codes)
+  }
+  def apply(codes: Seq[Code]): Try[Seq[Code]] = apply()(codes)
 }

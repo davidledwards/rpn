@@ -3,8 +3,15 @@ package com.loopfor.rpn
 import scala.annotation.tailrec
 import scala.math.{max, min, pow}
 
-class Evaluator private (val resolver: String => Double) {
-  import Evaluator._
+/**
+ * An evaluator that computes the result of an instruction sequence.
+ */
+trait Evaluator {
+  def apply(codes: Stream[Code]): Double
+}
+
+private class BasicEvaluator(val resolver: String => Double) extends Evaluator {
+  import BasicEvaluator._
 
   def apply(codes: Stream[Code]): Double = {
     @tailrec def evaluate(codes: Stream[Code],
@@ -39,7 +46,9 @@ class Evaluator private (val resolver: String => Double) {
   }
 }
 
-object Evaluator {
+object BasicEvaluator {
+  def apply(resolver: String => Double): Evaluator = new BasicEvaluator(resolver)
+
   val scalarOp: Map[Class[_ <: ScalarCode], (Double, Double) => Double] = Map(
     classOf[AddCode] -> { _ + _ },
     classOf[SubtractCode] -> { _ - _ },
@@ -50,6 +59,4 @@ object Evaluator {
     ModuloCode.getClass -> { _ % _ },
     PowerCode.getClass -> { pow(_, _) }
     )
-
-  def apply(resolver: String => Double): Evaluator = new Evaluator(resolver)
 }

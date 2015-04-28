@@ -7,7 +7,11 @@ import scala.util.Try
  * 
  * The instruction sequence should be considered unoptimized.
  */
-class Generator private () {
+trait Generator {
+  def apply(ast: AST): Try[Seq[Code]]
+}
+
+private class BasicGenerator extends Generator {
   def apply(ast: AST): Try[Seq[Code]] = Try {
     generate(ast)
   }
@@ -58,6 +62,7 @@ class Generator private () {
   }
 }
 
-object Generator {
-  def apply(): Generator = new Generator
+object BasicGenerator {
+  def apply(): Generator = new BasicGenerator
+  def apply(ast: AST): Try[Seq[Code]] = apply()(ast)
 }

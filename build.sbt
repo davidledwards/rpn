@@ -55,6 +55,6 @@ lazy val rootProject = (project in file(".")).
   ).
   settings(packSettings).
   settings(
-    packMain := Map("rpnc" -> "com.loopfor.rpn.compiler.Compiler",
-                    "rpn" -> "com.loopfor.rpn.interpreter.Interpreter")
+    packMain := Map("rpnc" -> "com.loopfor.rpn.Compiler",
+                    "rpn" -> "com.loopfor.rpn.Interpreter")
   )

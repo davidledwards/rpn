@@ -3,7 +3,15 @@ package com.loopfor.rpn
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream
 
-class Loader private () {
+/**
+ * An instruction loader that transforms a stream of characters into a stream of
+ * instructions.
+ */
+trait Loader {
+  def apply(in: Stream[Char]): Stream[Code]
+}
+
+private class BasicLoader extends Loader {
   def apply(in: Stream[Char]): Stream[Code] = {
     def load(in: Stream[Char]): Stream[Code] = read(in) match {
       case (null, _) => Stream.empty
@@ -26,6 +34,6 @@ class Loader private () {
   }
 }
 
-object Loader {
-  def apply(): Loader = new Loader
+object BasicLoader {
+  def apply(): Loader = new BasicLoader
 }

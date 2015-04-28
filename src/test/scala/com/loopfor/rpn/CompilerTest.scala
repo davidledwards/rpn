@@ -24,16 +24,16 @@ object CompilerTest {
     examples foreach { s =>
       println(s"\n$s ->")
       val in = Source.fromString(s).toStream
-      Lexer()(in) flatMap { tokens =>
-        Parser()(tokens)
+      BasicLexer()(in) flatMap { tokens =>
+        BasicParser()(tokens)
       } flatMap { ast =>
         println("---syntax tree---")
         println(AST.format(ast))
-        Generator()(ast)
+        BasicGenerator()(ast)
       } flatMap { unopt =>
         println("---unoptimized---")
         println(Codes.format(unopt))
-        Optimizer()(unopt)
+        BasicOptimizer()(unopt)
       } match {
         case Success(codes) =>
           println("---optimized---")

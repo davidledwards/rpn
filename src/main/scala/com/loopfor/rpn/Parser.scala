@@ -27,7 +27,11 @@ import scala.util.Try
  *    ::= <number>
  * }}}
  */
-class Parser private () {
+trait Parser {
+  def apply(in: Stream[Token]): Try[AST]
+}
+
+private class BasicParser extends Parser {
   def apply(in: Stream[Token]): Try[AST] = Try {
     val (ast, rest) = p0(in)
     rest.headOption match {
@@ -137,6 +141,7 @@ class Parser private () {
   }
 }
 
-object Parser {
-  def apply(): Parser = new Parser
+object BasicParser {
+  def apply(): Parser = new BasicParser
+  def apply(tokens: Stream[Token]): Try[AST] = apply()(tokens)
 }

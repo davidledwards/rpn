@@ -10,7 +10,11 @@ import scala.util.Try
  * Tokens must either be delimited by one or more whitespace characters, or be clearly
  * distinguishable from each other if not separated by whitespace.
  */
-class Lexer private () {
+trait Lexer {
+  def apply(in: Stream[Char]): Try[Stream[Token]]
+}
+
+private class BasicLexer extends Lexer {
   def apply(in: Stream[Char]): Try[Stream[Token]] = Try {
     def tokens(in: Stream[Char]): Stream[Token] = tokenize(in) match {
       case (EOSToken, _) => Stream.Empty
@@ -63,6 +67,7 @@ class Lexer private () {
   }
 }
 
-object Lexer {
-  def apply(): Lexer = new Lexer
+object BasicLexer {
+  def apply(): Lexer = new BasicLexer
+  def apply(in: Stream[Char]): Try[Stream[Token]] = apply()(in)
 }
