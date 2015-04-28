@@ -12,7 +12,7 @@ object InterpreterTest {
     val loader = BasicLoader()
     val evaluator = BasicEvaluator { name =>
       print(s"$name? ")
-      StdIn.readDouble()
+      Some(StdIn.readDouble())
     }
     val tests = Seq(
           "x ^ 3",

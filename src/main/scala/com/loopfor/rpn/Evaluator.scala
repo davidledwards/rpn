@@ -11,7 +11,7 @@ trait Evaluator {
   def apply(codes: Stream[Code]): Try[Double]
 }
 
-private class BasicEvaluator(val resolver: String => Double) extends Evaluator {
+private class BasicEvaluator(val resolver: String => Option[Double]) extends Evaluator {
   import BasicEvaluator._
 
   def apply(codes: Stream[Code]): Try[Double] = Try {
@@ -19,7 +19,12 @@ private class BasicEvaluator(val resolver: String => Double) extends Evaluator {
                           stack: Seq[Double],
                           syms: Map[String, Double]): Double = codes.headOption match {
       case Some(DeclareSymbolCode(name)) =>
-        evaluate(codes.tail, stack, syms + (name -> resolver(name)))
+        resolver(name) match {
+          case Some(v) =>
+            evaluate(codes.tail, stack, syms + (name -> v))
+          case None =>
+            throw new Exception(s"$name: symbol not bound")
+        }
       case Some(PushSymbolCode(name)) =>
         val st = (syms get name) match {
           case Some(v) => v +: stack
@@ -48,8 +53,8 @@ private class BasicEvaluator(val resolver: String => Double) extends Evaluator {
 }
 
 object BasicEvaluator {
-  def apply(resolver: String => Double): Evaluator = new BasicEvaluator(resolver)
-  def apply(codes: Stream[Code])(resolver: String => Double): Try[Double] = apply(resolver)(codes)
+  def apply(resolver: String => Option[Double]): Evaluator = new BasicEvaluator(resolver)
+  def apply(codes: Stream[Code])(resolver: String => Option[Double]): Try[Double] = apply(resolver)(codes)
 
   val scalarOp: Map[Class[_ <: ScalarCode], (Double, Double) => Double] = Map(
     classOf[AddCode] -> { _ + _ },
