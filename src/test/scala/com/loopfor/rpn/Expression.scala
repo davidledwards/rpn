@@ -11,7 +11,7 @@ object Expression {
         StarToken,
         SlashToken,
         PercentToken,
-        PowerToken,
+        CaretToken,
         MinToken,
         MaxToken)
 

@@ -88,7 +88,7 @@ private class BasicParser extends Parser {
     case Some(PercentToken) =>
       val (r, rest) = p4(in.tail)
       p3(ModuloAST(l, r), rest)
-    case Some(PowerToken) =>
+    case Some(CaretToken) =>
       val (r, rest) = p4(in.tail)
       p3(PowerAST(l, r), rest)
     case _ => (l, in)
