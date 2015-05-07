@@ -21,6 +21,12 @@ lazy val compilerSettings = Seq(
   )
 )
 
+lazy val dependencySettings = Seq(
+  libraryDependencies ++= Seq(
+    "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+  )
+)
+
 lazy val publishSettings = Seq(
   pomIncludeRepository := { _ => false },
   pomExtra :=
@@ -44,15 +50,16 @@ lazy val eclipseSettings = Seq(
   eclipseOutput in Test := (classDirectory in Test).value relativeTo baseDirectory.value map { _.getPath }
 )
 
-lazy val commonSettings =
-  projectSettings ++ compilerSettings ++ publishSettings ++ eclipseSettings
-
 lazy val rootProject = (project in file(".")).
-  settings(commonSettings: _*).
   settings(
     name := "rpn",
     description := "RPN Compiler and Interpreter"
   ).
+  settings(projectSettings: _*).
+  settings(compilerSettings: _*).
+  settings(dependencySettings: _*).
+  settings(publishSettings: _*).
+  settings(eclipseSettings: _*).
   settings(packSettings).
   settings(
     packMain := Map("rpnc" -> "com.loopfor.rpn.Compiler",
