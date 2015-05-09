@@ -1,7 +1,6 @@
 package com.loopfor.rpn
 
 import org.scalatest.FunSuite
-import scala.io.Source
 import scala.util.{Failure, Success}
 
 class LexerTest extends FunSuite {

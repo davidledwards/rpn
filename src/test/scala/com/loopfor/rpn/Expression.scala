@@ -29,7 +29,7 @@ object Expression {
   }
 
   object Num {
-    def generate() = NumberToken(f"${nextDouble() * 100}%2.2f")
+    def generate() = NumberToken(f"${nextDouble() * 2}%2.2f")
   }
 
   object Space {

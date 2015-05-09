@@ -3,15 +3,15 @@ package com.loopfor.rpn
 import scala.annotation.tailrec
 
 object Tools {
-  import Tests._
-
   def main(args: Array[String]): Unit = {
     parserTests(100)
-//    generatorTests(100)
+    generatorTests(100)
+    optimizerTests(100)
   }
 
   def parserTests(count: Int): Unit = {
-    println(s"${tab(1)}val parserTests = Seq[(String, AST)](")
+    import Tests._
+    println(s"${tab(1)}private val tests = Seq[(String, AST)](")
     for (n <- 1 to count) {
       val (expr, _) = Expression.generate()
       println(s"""${tab(2)}("$expr",""")
@@ -58,7 +58,8 @@ object Tools {
   }
 
   def generatorTests(count: Int): Unit = {
-    println(s"${tab(1)}val generatorTests = Seq[(String, Seq[Code])](")
+    import Tests._
+    println(s"${tab(1)}private val tests = Seq[(String, Seq[Code])](")
     for (n <- 1 to count) {
       val (expr, _) = Expression.generate()
       println(s"""${tab(2)}("$expr",""")
@@ -87,6 +88,44 @@ object Tools {
       }
       if (n < count) println(",") else println(")")
     }
+  }
+
+  def optimizerTests(count: Int): Unit = {
+    import Tests._
+    println(s"${tab(1)}private val tests = Seq[(Double, Seq[Code])](")
+    for (n <- 1 to count) {
+      val (expr, _) = Expression.generate()
+      (for {
+        tokens <- BasicLexer(expr)
+        ast <- BasicParser(tokens)
+        unopt <- BasicGenerator(ast)
+        result <- BasicEvaluator(unopt.toStream) { name => Some(hash(name)) }
+      } yield (unopt, result)) map { case (codes, result) =>
+        println(s"""${tab(2)}($result,""")
+        println(s"${tab(3)}Seq(")
+        @tailrec def emit(codes: Seq[Code]): Unit = codes match {
+          case Seq(code, rest @ _*) =>
+            val s = code match {
+              case c: DeclareSymbolCode =>
+                s"""DeclareSymbolCode("${c.name}")"""
+              case c: PushSymbolCode =>
+                s"""PushSymbolCode("${c.name}")"""
+              case _ =>
+                s"$code"
+            }
+            print(s"${tab(4)}$s")
+            if (rest.isEmpty) print("))") else println(",")
+            emit(rest)
+          case _ =>
+        }
+        emit(codes)
+      }
+      if (n < count) println(",") else println(")")
+    }
+  }
+
+  def hash(name: String): Double = {
+    name.foldLeft(0.0) { case (h, c) => h + c / 100.0 } / 10.0
   }
 
   private def tab(n: Int) = "  " * n
