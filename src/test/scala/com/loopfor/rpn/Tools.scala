@@ -2,6 +2,16 @@ package com.loopfor.rpn
 
 import scala.annotation.tailrec
 
+/**
+ * Tools for automatically generating random conformant expressions.
+ * 
+ * Note that these expressions are generated for testing purposes only and may
+ * appear to be senseless when visually inspected. However, they do conform to
+ * the specified grammar and are sufficient for detecting regressions.
+ * 
+ * The output of each test generation is formatted such that it can be
+ * literally cut and pasted into the unit test itself.
+ */
 object Tools {
   def main(args: Array[String]): Unit = {
     parserTests(100)
@@ -9,6 +19,9 @@ object Tools {
     optimizerTests(100)
   }
 
+  /**
+   * Produces a random expression and its corresponding AST.
+   */
   def parserTests(count: Int): Unit = {
     import Tests._
     println(s"${tab(1)}private val tests = Seq[(String, AST)](")
@@ -57,6 +70,10 @@ object Tools {
     }
   }
 
+  /**
+   * Produces a random expression and its corresponding unoptimized instruction
+   * sequence.
+   */
   def generatorTests(count: Int): Unit = {
     import Tests._
     println(s"${tab(1)}private val tests = Seq[(String, Seq[Code])](")
@@ -90,6 +107,17 @@ object Tools {
     }
   }
 
+  /**
+   * Produces a sequence of instructions with a computed value.
+   * 
+   * The computed value is possible due to a method of assigning values to each
+   * symbol during evalation using a deterministic hash. Since symbol names are
+   * stable, an optimization of the instruction sequence should produce the
+   * same value.
+   * 
+   * Note that in some cases, the precomputed value is `NaN` or `Infinity`, which
+   * should be removed from the set before use in unit tests.
+   */
   def optimizerTests(count: Int): Unit = {
     import Tests._
     println(s"${tab(1)}private val tests = Seq[(Double, Seq[Code])](")
