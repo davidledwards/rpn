@@ -48,8 +48,9 @@ object Compiler {
           ast <- BasicParser(tokens)
           unopt <- BasicGenerator(ast)
           opt <- BasicOptimizer(unopt)
-        } yield opt) match {
-          case Success(codes) => for (code <- codes) println(code.repr)
+          lines <- BasicEmitter(opt)
+        } yield lines) match {
+          case Success(lines) => for (l <- lines) println(l)
           case Failure(e) => println(e.getMessage)
         }
       case Some(arg) =>
@@ -60,8 +61,9 @@ object Compiler {
           ast <- BasicParser(tokens)
           unopt <- BasicGenerator(ast)
           opt <- DisabledOptimizer(unopt)
-        } yield opt) match {
-          case Success(codes) => for (code <- codes) println(code.repr)
+          lines <- BasicEmitter(opt)
+        } yield lines) match {
+          case Success(lines) => for (l <- lines) println(l)
           case Failure(e) => println(e.getMessage)
         }
     }

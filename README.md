@@ -271,10 +271,12 @@ In order to demonstrate the use of functional style, the compiler is essentially
 functions that represent the various stages one might see in a typical design.
 
 The stages of compilation and their order of execution follows:
+
 * Tokenize
 * Parse
 * Generate
 * Optimize
+* Emit
 
 The output of a prior stage is input to the next, as can be seen by the type signatures of each
 function.
@@ -291,9 +293,12 @@ Generation transforms an abstract syntax tree into a sequence of unoptimized ins
 ### Optimize: `Seq[Code]` => `Seq[Code]`
 Optimization transforms a sequence of instructions into a sequence of optimized instructions.
 
+### Emit: `Seq[Code]` => `Stream[String]`
+Emitting transforms a sequence of instructions into a stream of strings.
+
 These functions are composed to form a pipeline that conforms to the following type signature:
-`Stream[Char]` => `Seq[Code]`. In essence, an expression in the input stream can be fed into the
-pipeline, producing a sequence of instructions that can be written to the output stream.
+`Stream[Char]` => `Stream[String]`. In essence, an expression in the input stream can be fed into
+the pipeline, producing a stream of strings that can be written to the output stream.
 
 The only necessary side effects that occur in this program are those that exist in
 `Compiler.scala` and `Interpreter.scala`, in which `stdin` and `stdout` are wired into their
