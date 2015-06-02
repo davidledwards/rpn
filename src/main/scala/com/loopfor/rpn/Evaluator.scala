@@ -47,10 +47,10 @@ private class BasicEvaluator(val resolver: String => Option[Double]) extends Eva
         evaluate(codes.tail, st, syms)
       case Some(PushCode(v)) =>
         evaluate(codes.tail, v +: stack, syms)
-      case Some(c: ScalarCode) =>
+      case Some(c: OperatorCode) =>
         val (vs, rest) = stack splitAt c.args
         val st = if (vs.size == c.args)
-          (vs.reverse reduceLeft scalarOp(c.getClass)) +: rest
+          (vs.reverse reduceLeft operators(c.getClass)) +: rest
         else
           throw new Exception(s"evaluator stack underflow")
         evaluate(codes.tail, st, syms)
@@ -70,7 +70,7 @@ object Evaluator {
   def apply(resolver: String => Option[Double]): Evaluator = new BasicEvaluator(resolver)
   def apply(codes: Stream[Code])(resolver: String => Option[Double]): Double = apply(resolver)(codes)
 
-  val scalarOp: Map[Class[_ <: ScalarCode], (Double, Double) => Double] = Map(
+  val operators: Map[Class[_ <: OperatorCode], (Double, Double) => Double] = Map(
     classOf[AddCode] -> { _ + _ },
     classOf[SubtractCode] -> { _ - _ },
     classOf[MultiplyCode] -> { _ * _ },

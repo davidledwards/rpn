@@ -36,7 +36,7 @@ private class BasicOptimizer extends Optimizer {
 
   private val transform = (combineDynamicScalars _) andThen (flattenDynamicScalars _) andThen (evaluateLiteralExpressions _)
 
-  private val dynamicCtors: Map[Class[_ <: DynamicScalarCode], Int => DynamicScalarCode] = Map(
+  private val dynamicCtors: Map[Class[_ <: DynamicOperatorCode], Int => DynamicOperatorCode] = Map(
         classOf[AddCode] -> AddCode.apply _,
         classOf[SubtractCode] -> SubtractCode.apply _,
         classOf[MultiplyCode] -> MultiplyCode.apply _,
@@ -45,7 +45,7 @@ private class BasicOptimizer extends Optimizer {
         classOf[MaxCode] -> MaxCode.apply _
         )
 
-  private val scalarCtors: Map[Class[_ <: Code], Int => Code] = Map(
+  private val operatorCtors: Map[Class[_ <: Code], Int => Code] = Map(
         ModuloCode.getClass -> { _: Int => ModuloCode },
         PowerCode.getClass -> { _: Int => PowerCode }
         ) ++ dynamicCtors
@@ -104,14 +104,14 @@ private class BasicOptimizer extends Optimizer {
    */
   private def combineDynamicScalars(codes: Seq[Code]): Seq[Code] = {
     val (_, _, _, revs) = codes.foldLeft((0, 0,
-                                          Map.empty[(String, Int), (Int, DynamicScalarCode)],
+                                          Map.empty[(String, Int), (Int, DynamicOperatorCode)],
                                           Map.empty[Int, Code])) {
       case ((pos, frame, cands, revs), code) =>
         // Only candidates whose frame is not larger than the current frame are eligible
         // for elimination.
         lazy val eligible = cands filter { case ((_, f), _) => f <= frame }
 
-        def evaluate(code: DynamicScalarCode) = (eligible get (code.op, frame)) match {
+        def evaluate(code: DynamicOperatorCode) = (eligible get (code.op, frame)) match {
           case Some((p, c)) =>
             // Found matching candidate on current frame, so do the following:
             // - remove candidate from eligibility set and add `nop` to revision set
@@ -129,10 +129,10 @@ private class BasicOptimizer extends Optimizer {
         val (f, c, r) = code match {
           case PushSymbolCode(_) => (1, cands, revs)
           case PushCode(_) => (1, cands, revs)
-          case c: DynamicScalarCode =>
+          case c: DynamicOperatorCode =>
             val (_cands, _revs) = evaluate(c)
             (1 - c.args, _cands, _revs)
-          case c: ScalarCode => (1 - c.args, eligible, revs)
+          case c: OperatorCode => (1 - c.args, eligible, revs)
           case _ => (0, cands, revs)
         }
         (pos + 1, frame + f, c, r)
@@ -196,11 +196,11 @@ private class BasicOptimizer extends Optimizer {
    */
   private def flattenDynamicScalars(codes: Seq[Code]): Seq[Code] = {
     val (_, _, revs) = codes.foldLeft((0,
-                                       Option.empty[DynamicScalarCode],
+                                       Option.empty[DynamicOperatorCode],
                                        Map.empty[Int, Code])) {
       case ((pos, prior, revs), code) =>
         val (p, r) = code match {
-          case c: DynamicScalarCode =>
+          case c: DynamicOperatorCode =>
             prior match {
               case Some(p) if (c.op == p.op) =>
                 // Current instruction matches previous instruction, so do the following:
@@ -276,20 +276,20 @@ private class BasicOptimizer extends Optimizer {
     case object ArbitraryValue extends Value
 
     def analyze(pos: Int, codes: Seq[Code], stack: Seq[Value]): Map[Int, Code] = {
-      def inspect(code: ScalarCode): (Map[Int, Code], Seq[Value]) = {
+      def inspect(code: OperatorCode): (Map[Int, Code], Seq[Value]) = {
         val nums = for (arg @ NumberValue(_, _) <- (stack take code.args).reverse) yield arg
         val revs = if (nums.size > 1) {
-          import Evaluator.scalarOp
+          import Evaluator.operators
           // Expression with multiple literals is detected, so do the following:
           // - replace all but last `push` instruction with `nop`
           // - modify last `push` with precomputed value
           // - eliminate entire operation if entire expression composed of literals
           // - otherwise, modify operation to reflect reduction in arguments
-          val value = (for (NumberValue(v, _) <- nums) yield v) reduceLeft scalarOp(code.getClass)
+          val value = (for (NumberValue(v, _) <- nums) yield v) reduceLeft operators(code.getClass)
           val rs = nums.init.foldLeft(Map.empty[Int, Code]) { case (r, num) => r + (num.pos -> NopCode) }
           rs + (nums.last.pos -> PushCode(value)) +
             (if (nums.size == code.args) (pos -> NopCode)
-             else (pos -> scalarCtors(code.getClass)(code.args - nums.size + 1)))
+             else (pos -> operatorCtors(code.getClass)(code.args - nums.size + 1)))
         } else
           Map.empty[Int, Code]
         (revs, stack drop code.args)
@@ -299,7 +299,7 @@ private class BasicOptimizer extends Optimizer {
         case Some(DeclareSymbolCode(_)) => analyze(pos + 1, codes.tail, stack)
         case Some(PushSymbolCode(_)) => analyze(pos + 1, codes.tail, ArbitraryValue +: stack)
         case Some(PushCode(v)) => analyze(pos + 1, codes.tail, NumberValue(v, pos) +: stack)
-        case Some(c: ScalarCode) =>
+        case Some(c: OperatorCode) =>
           val (revs, s) = inspect(c)
           if (revs.size == 0) analyze(pos + 1, codes.tail, s) else revs
         case None => Map.empty
