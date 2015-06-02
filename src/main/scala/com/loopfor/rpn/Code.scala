@@ -90,7 +90,7 @@ case class PushCode(value: Double) extends Code("push") {
 }
 
 object PushCode {
-  val pattern = """\s*push\s+(\d+|\d+\.\d+)\s*""".r
+  val pattern = """\s*push\s+(-?\d+|-?\d+\.\d+)\s*""".r
 }
 
 /**
