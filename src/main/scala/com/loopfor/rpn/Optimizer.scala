@@ -106,39 +106,39 @@ private class BasicOptimizer extends Optimizer {
    * a new sequence of instructions.
    */
   private def combineDynamicOperators(codes: Seq[Code]): Seq[Code] = {
-    val (_, _, _, revs) = codes.foldLeft((0, 0,
-                                          Map.empty[(String, Int), (Int, DynamicOperatorCode)],
-                                          Map.empty[Int, Code])) {
-      case ((pos, frame, cands, revs), code) =>
-        // Only candidates whose frame is not larger than the current frame are eligible
-        // for elimination.
-        lazy val eligible = cands filter { case ((_, f), _) => f <= frame }
+    trait Frame
+    case object Ineligible extends Frame
+    case class Eligible(op: String, pos: Int, code: DynamicOperatorCode) extends Frame
 
-        def evaluate(code: DynamicOperatorCode) = (eligible get (code.op, frame)) match {
-          case Some((p, c)) =>
-            // Found matching candidate on current frame, so do the following:
-            // - remove candidate from eligibility set and add `nop` to revision set
-            // - add modified instruction both as candidate for future consideration and
-            //   to revision set
-            val rep = dynamicCtors(code.getClass)(c.args + code.args - 1)
-            (eligible - ((code.op, frame)) + ((rep.op, frame) -> (pos, rep)),
-                  revs + (p -> NopCode) + (pos -> rep))
-          case None =>
-            // No matching candidate on current frame, so add this instruction for future
-            // consideration.
-            (eligible + ((code.op, frame) -> (pos, code)), revs)
-        }
-
-        val (f, c, r) = code match {
-          case PushSymbolCode(_) => (1, cands, revs)
-          case PushCode(_) => (1, cands, revs)
+    val (_, _, revs) = codes.foldLeft((0,
+                                       Seq.empty[Frame],
+                                       Map.empty[Int, Code])) {
+      case ((pos, frames, revs), code) =>
+        val (_frames, _revs) = code match {
+          case PushSymbolCode(_) | PushCode(_) =>
+            (Ineligible +: frames, revs)
           case c: DynamicOperatorCode =>
-            val (_cands, _revs) = evaluate(c)
-            (1 - c.args, _cands, _revs)
-          case c: OperatorCode => (1 - c.args, eligible, revs)
-          case _ => (0, cands, revs)
+            // Consider only last argument on stack frame as potentially eligible, and only
+            // if operator names match. The intuition behind examining only the last argument,
+            // which is actually the first when viewed from a left-to-right evaluation
+            // standpoint, is that the prior eligible operator would have occurred at the
+            // same frame depth as the current operator.
+            val (_code, _revs) = (frames take c.args).last match {
+              case Eligible(op, _pos, _code) if op == c.op =>
+                // Create modified instruction to reflect increase in number of arguments,
+                // and turn eligible instruction into `nop` by including in revision set.
+                val _c = dynamicCtors(c.getClass)(c.args + _code.args - 1)
+                (_c, revs + (_pos -> NopCode) + (pos -> _c))
+              case _ =>
+                (c, revs)
+            }
+            (Eligible(_code.op, pos, _code) +: (frames drop c.args), _revs)
+          case c: OperatorCode =>
+            (Ineligible +: (frames drop c.args), revs)
+          case _ =>
+            (frames, revs)
         }
-        (pos + 1, frame + f, c, r)
+        (pos + 1, _frames, _revs)
     }
     revise(codes, revs)
   }

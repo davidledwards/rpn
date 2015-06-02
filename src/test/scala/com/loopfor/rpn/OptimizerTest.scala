@@ -20,15 +20,15 @@ import org.scalatest.FunSuite
 class OptimizerTest extends FunSuite {
   import Tests._
 
-  private val Epsilon = 0.0000001
+  // This error value is necessary to test equivalence because of inaccuracy of floating
+  // point operations.
+  private val Epsilon = 0.0000000001
 
   test("optimizations") {
     for ((result, unopt) <- tests) {
       try {
         val r = Evaluator(Optimizer(unopt).toStream) { name => Some(Tools.hash(name)) }
-        if (r != result) println(s"computed: $r, expected: $result")
-//        assert(r === result)
-//        assert(r >= (result - Epsilon) && r <= (result + Epsilon))
+        assert(r > (result - Epsilon) && r < (result + Epsilon))
       } catch {
         case e: Exception => fail(e)
       }
