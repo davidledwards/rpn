@@ -26,7 +26,7 @@ class OptimizerTest extends FunSuite {
     for ((result, unopt) <- tests) {
       try {
         val r = Evaluator(Optimizer(unopt).toStream) { name => Some(Tools.hash(name)) }
-        println(r + ", " + result)
+        if (r != result) println(s"computed: $r, expected: $result")
 //        assert(r === result)
 //        assert(r >= (result - Epsilon) && r <= (result + Epsilon))
       } catch {

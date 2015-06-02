@@ -34,7 +34,10 @@ private class BasicOptimizer extends Optimizer {
     optimize(codes)
   }
 
-  private val transform = (combineDynamicScalars _) andThen (flattenDynamicScalars _) andThen (evaluateLiteralExpressions _)
+  private val transform =
+    (combineDynamicOperators _) andThen
+    (flattenDynamicOperators _) andThen
+    (evaluateLiteralExpressions _)
 
   private val dynamicCtors: Map[Class[_ <: DynamicOperatorCode], Int => DynamicOperatorCode] = Map(
         classOf[AddCode] -> AddCode.apply _,
@@ -102,7 +105,7 @@ private class BasicOptimizer extends Optimizer {
    * all instructions have been evaluated, the set of revisions are applied, resulting in
    * a new sequence of instructions.
    */
-  private def combineDynamicScalars(codes: Seq[Code]): Seq[Code] = {
+  private def combineDynamicOperators(codes: Seq[Code]): Seq[Code] = {
     val (_, _, _, revs) = codes.foldLeft((0, 0,
                                           Map.empty[(String, Int), (Int, DynamicOperatorCode)],
                                           Map.empty[Int, Code])) {
@@ -144,7 +147,7 @@ private class BasicOptimizer extends Optimizer {
    * An optimization that flattens identical operations adjacent to each other in the
    * instruction sequence.
    * 
-   * This optimization is similar to [[combineDynamicScalars]] in that operations are
+   * This optimization is similar to [[combineDynamicOperators]] in that operations are
    * essentially combined, but instead it looks for special cases in which identical operations
    * occur in adjacent frames on the evaluation stack.
    * 
@@ -158,8 +161,8 @@ private class BasicOptimizer extends Optimizer {
    * }}}
    * 
    * Note that both `mul` instructions occur in adjacent positions. At first glance, it may
-   * appear as though [[combineDynamicScalars]] would eliminate one of the operations, but each
-   * occurs at a different frame on the evaluation stack.
+   * appear as though [[combineDynamicOperators]] would eliminate one of the operations, but
+   * each occurs at a different frame on the evaluation stack.
    * 
    * The intuition behind this optimization is that the first `mul 2` would push its result
    * onto the stack, only to be removed for evaluation by the second `mul 2` instruction. So,
@@ -167,9 +170,10 @@ private class BasicOptimizer extends Optimizer {
    * a single `mul 3` instruction. In general, any number of adjacent identical instructions
    * can be reduced to a single instruction.
    * 
-   * One may notice that this phase optimizes for right-to-left associativity, which becomes
-   * more clear with another example: `a * (b * (c * d))`. The original instruction sequence
-   * follows:
+   * One may notice that this phase optimizes right-to-left evaluation scenarios, but only for
+   * those operators with the associative property, i.e. evaluation can be left-to-right or
+   * right-to-left. This becomes more clear with another example: `a * (b * (c * d))`.
+   * The original instruction sequence follows:
    * {{{
    * push a
    * push b
@@ -190,17 +194,17 @@ private class BasicOptimizer extends Optimizer {
    * mul 4
    * }}}
    * 
-   * The algorithm works by stepping through each instruction, finding adjacent identical
-   * pairs, and eliminating all but the final instruction, which is then modified to reflect
-   * the combined number of arguments.
+   * The algorithm works by stepping through each associative operator instruction, finding
+   * adjacent identical pairs, and eliminating all but the final instruction, which is then
+   * modified to reflect the combined number of arguments.
    */
-  private def flattenDynamicScalars(codes: Seq[Code]): Seq[Code] = {
+  private def flattenDynamicOperators(codes: Seq[Code]): Seq[Code] = {
     val (_, _, revs) = codes.foldLeft((0,
                                        Option.empty[DynamicOperatorCode],
                                        Map.empty[Int, Code])) {
       case ((pos, prior, revs), code) =>
         val (p, r) = code match {
-          case c: DynamicOperatorCode =>
+          case c: DynamicOperatorCode if c.isAssociative =>
             prior match {
               case Some(p) if (c.op == p.op) =>
                 // Current instruction matches previous instruction, so do the following:
@@ -236,7 +240,7 @@ private class BasicOptimizer extends Optimizer {
    * add 2
    * }}}
    * 
-   * Applying the [[combineDynamicScalars]] optimization produces the following:
+   * Applying the [[combineDynamicOperators]] optimization produces the following:
    * {{{
    * push x
    * push 1
@@ -277,22 +281,31 @@ private class BasicOptimizer extends Optimizer {
 
     def analyze(pos: Int, codes: Seq[Code], stack: Seq[Value]): Map[Int, Code] = {
       def inspect(code: OperatorCode): (Map[Int, Code], Seq[Value]) = {
+        // Extract only those arguments representing literal values.
         val nums = for (arg @ NumberValue(_, _) <- (stack take code.args).reverse) yield arg
-        val revs = if (nums.size > 1) {
+
+        // Revisions can only be applied if the operator is commutative and more than one argument
+        // is a literal, or for any operator if all arguments are literals.
+        val revs = if ((nums.size > 1 && code.isCommutative) || nums.size == code.args) {
           import Evaluator.operators
-          // Expression with multiple literals is detected, so do the following:
-          // - replace all but last `push` instruction with `nop`
-          // - modify last `push` with precomputed value
-          // - eliminate entire operation if entire expression composed of literals
-          // - otherwise, modify operation to reflect reduction in arguments
+
+          // Precompute value by applying operator function to literals in left-to-right order.
           val value = (for (NumberValue(v, _) <- nums) yield v) reduceLeft operators(code.getClass)
+
+          // Replace all but last `push` instruction with `nop`.
           val rs = nums.init.foldLeft(Map.empty[Int, Code]) { case (r, num) => r + (num.pos -> NopCode) }
+
+          // Eliminate operation if entire expression is composed of literals, otherwise modify
+          // operation to reflect reduction in arguments.
           rs + (nums.last.pos -> PushCode(value)) +
             (if (nums.size == code.args) (pos -> NopCode)
              else (pos -> operatorCtors(code.getClass)(code.args - nums.size + 1)))
         } else
           Map.empty[Int, Code]
-        (revs, stack drop code.args)
+
+        // Arbitrary value is always pushed after dropping operator arguments since all operators
+        // push result of its computation.
+        (revs, ArbitraryValue +: (stack drop code.args))
       }
 
       codes.headOption match {

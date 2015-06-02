@@ -44,7 +44,10 @@ abstract class BasicCode(op: String) extends Code(op) {
   val repr = op
 }
 
-abstract class OperatorCode(op: String, val args: Int) extends Code(op)
+abstract class OperatorCode(op: String, val args: Int) extends Code(op) {
+  def isAssociative: Boolean
+  def isCommutative: Boolean
+}
 
 abstract class FixedOperatorCode(op: String, args: Int) extends OperatorCode(op, args) {
   val repr = op
@@ -80,7 +83,10 @@ object PushSymbolCode {
  * Pushes the number `value` onto the evaluation stack.
  */
 case class PushCode(value: Double) extends Code("push") {
-  val repr = s"$op $value"
+  val repr = {
+    val v = (f"$value%.10f").reverse.dropWhile(_ == '0').dropWhile(_ == '.').reverse
+    s"$op $v"
+  }
 }
 
 object PushCode {
@@ -91,7 +97,10 @@ object PushCode {
  * Pops `args` operands from the evaluation stack, computes the sum, and pushes the
  * result onto the evaluation stack.
  */
-case class AddCode(override val args: Int) extends DynamicOperatorCode("add", args)
+case class AddCode(override val args: Int) extends DynamicOperatorCode("add", args) {
+  val isAssociative = true
+  val isCommutative = true
+}
 
 object AddCode {
   val pattern = """\s*add\s+(\d+)\s*""".r
@@ -101,7 +110,10 @@ object AddCode {
  * Pops `args` operands from the evaluation stack, computes the difference, and pushes
  * the result onto the evaluation stack.
  */
-case class SubtractCode(override val args: Int) extends DynamicOperatorCode("sub", args)
+case class SubtractCode(override val args: Int) extends DynamicOperatorCode("sub", args) {
+  val isAssociative = false
+  val isCommutative = false
+}
 
 object SubtractCode {
   val pattern = """\s*sub\s+(\d+)\s*""".r
@@ -111,7 +123,10 @@ object SubtractCode {
  * Pops `args` operands from the evaluation stack, computes the product, and pushes
  * the result onto the evaluation stack.
  */
-case class MultiplyCode(override val args: Int) extends DynamicOperatorCode("mul", args)
+case class MultiplyCode(override val args: Int) extends DynamicOperatorCode("mul", args) {
+  val isAssociative = true
+  val isCommutative = true
+}
 
 object MultiplyCode {
   val pattern = """\s*mul\s+(\d+)\s*""".r
@@ -121,7 +136,10 @@ object MultiplyCode {
  * Pops `args` operands from the evaluation stack, computes the quotient, and pushes
  * the result onto the evaluation stack.
  */
-case class DivideCode(override val args: Int) extends DynamicOperatorCode("div", args)
+case class DivideCode(override val args: Int) extends DynamicOperatorCode("div", args) {
+  val isAssociative = false
+  val isCommutative = false
+}
 
 object DivideCode {
   val pattern = """\s*div\s+(\d+)\s*""".r
@@ -131,7 +149,10 @@ object DivideCode {
  * Pops `args` operands from the evaluation stack, computes the minimum, and pushes
  * the result onto the evaluation stack.
  */
-case class MinCode(override val args: Int) extends DynamicOperatorCode("min", args)
+case class MinCode(override val args: Int) extends DynamicOperatorCode("min", args) {
+  val isAssociative = true
+  val isCommutative = true
+}
 
 object MinCode {
   val pattern = """\s*min\s+(\d+)\s*""".r
@@ -141,7 +162,10 @@ object MinCode {
  * Pops `args` operands from the evaluation stack, computes the maximum, and pushes
  * the result onto the evaluation stack.
  */
-case class MaxCode(override val args: Int) extends DynamicOperatorCode("max", args)
+case class MaxCode(override val args: Int) extends DynamicOperatorCode("max", args) {
+  val isAssociative = true
+  val isCommutative = true
+}
 
 object MaxCode {
   val pattern = """\s*max\s+(\d+)\s*""".r
@@ -152,6 +176,8 @@ object MaxCode {
  * the result onto the evaluation stack.
  */
 case object ModuloCode extends FixedOperatorCode("mod", 2) {
+  val isAssociative = false
+  val isCommutative = false
   val pattern = """\s*mod\s*""".r
 }
 
@@ -160,6 +186,8 @@ case object ModuloCode extends FixedOperatorCode("mod", 2) {
  * the result onto the evaluation stack.
  */
 case object PowerCode extends FixedOperatorCode("pow", 2) {
+  val isAssociative = false
+  val isCommutative = false
   val pattern = """\s*pow\s*""".r
 }
 
