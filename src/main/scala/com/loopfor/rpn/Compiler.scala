@@ -17,10 +17,9 @@ package com.loopfor.rpn
 
 import scala.collection.immutable.Stream
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
 
 object Compiler {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = try {
     lazy val in = Source.stdin.toStream
     args.headOption match {
       case Some("-?") =>
@@ -30,42 +29,21 @@ object Compiler {
         println("  -p  parse only")
         println("  -o  optimize")
       case Some("-t") =>
-        BasicLexer(in) match {
-          case Success(tokens) => for (token <- tokens) println(token)
-          case Failure(e) => println(e.getMessage)
-        }
+        val tokens = Lexer(in)
+        for (token <- tokens) println(token)
       case Some("-p") =>
-        (for {
-          tokens <- BasicLexer(in)
-          ast <- BasicParser(tokens)
-        } yield ast) match {
-          case Success(ast) => println(AST.format(ast))
-          case Failure(e) => println(e.getMessage)
-        }
+        val ast = Parser(Lexer(in))
+        println(AST.format(ast))
       case Some("-o") =>
-        (for {
-          tokens <- BasicLexer(in)
-          ast <- BasicParser(tokens)
-          unopt <- BasicGenerator(ast)
-          opt <- BasicOptimizer(unopt)
-          lines <- BasicEmitter(opt)
-        } yield lines) match {
-          case Success(lines) => for (l <- lines) println(l)
-          case Failure(e) => println(e.getMessage)
-        }
+        val lines = Emitter(Optimizer(Generator(Parser(Lexer(in)))))
+        for (line <- lines) println(line)
       case Some(arg) =>
         println(s"$arg: unrecognized option")
       case None =>
-        (for {
-          tokens <- BasicLexer(in)
-          ast <- BasicParser(tokens)
-          unopt <- BasicGenerator(ast)
-          opt <- DisabledOptimizer(unopt)
-          lines <- BasicEmitter(opt)
-        } yield lines) match {
-          case Success(lines) => for (l <- lines) println(l)
-          case Failure(e) => println(e.getMessage)
-        }
+        val lines = Emitter(Optimizer.disabled(Generator(Parser(Lexer(in)))))
+        for (line <- lines) println(line)
     }
+  } catch {
+    case e: Exception => println(e.getMessage)
   }
 }

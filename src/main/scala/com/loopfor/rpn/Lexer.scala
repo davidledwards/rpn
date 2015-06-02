@@ -17,7 +17,7 @@ package com.loopfor.rpn
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream
-import scala.util.Try
+import scala.io.Source
 
 /**
  * A lexical analyzer that transforms a stream of characters into a stream of tokens.
@@ -26,11 +26,11 @@ import scala.util.Try
  * distinguishable from each other if not separated by whitespace.
  */
 trait Lexer {
-  def apply(in: Stream[Char]): Try[Stream[Token]]
+  def apply(in: Stream[Char]): Stream[Token]
 }
 
 private class BasicLexer extends Lexer {
-  def apply(in: Stream[Char]): Try[Stream[Token]] = Try {
+  def apply(in: Stream[Char]): Stream[Token] = {
     def tokens(in: Stream[Char]): Stream[Token] = tokenize(in) match {
       case (EOSToken, _) => Stream.Empty
       case (token, rest) => token #:: tokens(rest)
@@ -82,7 +82,8 @@ private class BasicLexer extends Lexer {
   }
 }
 
-object BasicLexer {
+object Lexer {
   def apply(): Lexer = new BasicLexer
-  def apply(in: Stream[Char]): Try[Stream[Token]] = apply()(in)
+  def apply(in: Stream[Char]): Stream[Token] = apply()(in)
+  def apply(in: String): Stream[Token] = apply(Source.fromString(in).toStream)
 }

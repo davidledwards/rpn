@@ -15,19 +15,17 @@
  */
 package com.loopfor.rpn
 
-import scala.util.Try
-
 /**
  * A code generator that transforms a syntax tree to a sequence of instructions.
  * 
  * The instruction sequence should be considered unoptimized.
  */
 trait Generator {
-  def apply(ast: AST): Try[Seq[Code]]
+  def apply(ast: AST): Seq[Code]
 }
 
 private class BasicGenerator extends Generator {
-  def apply(ast: AST): Try[Seq[Code]] = Try {
+  def apply(ast: AST): Seq[Code] = {
     generate(ast)
   }
 
@@ -77,7 +75,7 @@ private class BasicGenerator extends Generator {
   }
 }
 
-object BasicGenerator {
+object Generator {
   def apply(): Generator = new BasicGenerator
-  def apply(ast: AST): Try[Seq[Code]] = apply()(ast)
+  def apply(ast: AST): Seq[Code] = apply()(ast)
 }

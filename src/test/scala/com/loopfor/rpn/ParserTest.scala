@@ -21,17 +21,13 @@ import scala.util.{Failure, Success, Try}
 class ParserTest extends FunSuite {
   import Tests._
 
-  private val parser: Stream[Char] => Try[AST] = {
-    val lex = BasicLexer()
-    val par = BasicParser()
-    in => lex(in) flatMap { par(_) }
-  }
-
   test("valid randomized expressions") {
     for ((expr, ast) <- tests) {
-      parser(expr) match {
-        case Success(a) => assert(a === ast)
-        case Failure(e) => fail(e)
+      try {
+        val a = Parser(Lexer(expr))
+        assert(a === ast)
+      } catch {
+        case e: Exception => fail(e)
       }
     }
   }
@@ -54,9 +50,11 @@ class ParserTest extends FunSuite {
           )
 
     for (expr <- tests) {
-      parser(expr) match {
-        case Success(_) => fail(expr)
-        case Failure(_) =>
+      try {
+        Parser(Lexer(expr))
+        fail(expr)
+      } catch {
+        case _: Exception =>
       }
     }
   }

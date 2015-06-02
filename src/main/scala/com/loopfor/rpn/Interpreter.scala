@@ -18,10 +18,9 @@ package com.loopfor.rpn
 import scala.annotation.tailrec
 import scala.collection.immutable.Stream
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
 
 object Interpreter {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = try {
     lazy val in = Source.stdin.toStream
     args.headOption match {
       case Some("-?") =>
@@ -30,10 +29,8 @@ object Interpreter {
         println("  Binds optional sequence of sym/val pairs prior to evaluation.")
         println("  -s  print symbols")
       case Some("-s") =>
-        BasicLoader(in) match {
-          case Success(codes) => for (name <- Codes.symbols(codes)) println(name)
-          case Failure(e) => println(e.getMessage)
-        }
+        val codes = Loader(in)
+        for (name <- Codes.symbols(codes)) println(name)
       case Some(arg) if (arg startsWith "-") =>
         println(s"$arg: unrecognized option")
       case _ =>
@@ -50,13 +47,10 @@ object Interpreter {
           case Seq() => syms
         }
         val syms = bind(args, Map.empty)
-        (for {
-          codes <- BasicLoader(in)
-          result <- BasicEvaluator(codes) { syms get _ }
-        } yield result) match {
-          case Success(r) => println(r)
-          case Failure(e) => println(e.getMessage)
-        }
+        val result = Evaluator(Loader(in)) { syms get _ }
+        println(result)
     }
+  } catch {
+    case e: Exception => println(e.getMessage)
   }
 }

@@ -16,7 +16,6 @@
 package com.loopfor.rpn
 
 import scala.annotation.tailrec
-import scala.util.Try
 
 /**
  * A recursive-descent parser that transforms a stream of tokens into a syntax tree.
@@ -43,11 +42,11 @@ import scala.util.Try
  * }}}
  */
 trait Parser {
-  def apply(in: Stream[Token]): Try[AST]
+  def apply(in: Stream[Token]): AST
 }
 
 private class BasicParser extends Parser {
-  def apply(in: Stream[Token]): Try[AST] = Try {
+  def apply(in: Stream[Token]): AST = {
     val (ast, rest) = p0(in)
     rest.headOption match {
       case Some(t) => throw new Exception(s"${t.lexeme}: expecting ${EOSToken.lexeme}")
@@ -156,7 +155,7 @@ private class BasicParser extends Parser {
   }
 }
 
-object BasicParser {
+object Parser {
   def apply(): Parser = new BasicParser
-  def apply(tokens: Stream[Token]): Try[AST] = apply()(tokens)
+  def apply(tokens: Stream[Token]): AST = apply()(tokens)
 }

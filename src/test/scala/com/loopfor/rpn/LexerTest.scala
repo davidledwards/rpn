@@ -16,20 +16,18 @@
 package com.loopfor.rpn
 
 import org.scalatest.FunSuite
-import scala.util.{Failure, Success}
 
 class LexerTest extends FunSuite {
   import Tests._
 
-  private val lexer = BasicLexer()
-
   test("valid tokens in randomized expressions") {
     for (_ <- 1 to 100) {
       val (expr, tokens) = Expression.generate()
-      lexer(expr) match {
-        case Success(ts) =>
-          for ((x, y) <- ts zip tokens) assert(x.lexeme === y.lexeme)
-        case Failure(e) => fail(e)
+      try {
+        val tokens = Lexer(expr)
+        for ((x, y) <- tokens zip tokens) assert(x.lexeme === y.lexeme)
+      } catch {
+        case e: Exception => fail(e)
       }
     }
   }
@@ -43,9 +41,11 @@ class LexerTest extends FunSuite {
           )
 
     for (expr <- tests) {
-      lexer(expr) match {
-        case Success(_) => fail(expr)
-        case Failure(_) =>
+      try {
+        Lexer(expr)
+        fail(expr)
+      } catch {
+        case _: Exception =>
       }
     }
   }

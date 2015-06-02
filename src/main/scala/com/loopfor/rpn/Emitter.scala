@@ -16,17 +16,16 @@
 package com.loopfor.rpn
 
 import scala.collection.immutable.Stream
-import scala.util.Try
 
 /**
  * An emitter that transforms a sequence of instructions into a stream of strings.
  */
 trait Emitter {
-  def apply(codes: Seq[Code]): Try[Stream[String]]
+  def apply(codes: Seq[Code]): Stream[String]
 }
 
 private class BasicEmitter extends Emitter {
-  def apply(codes: Seq[Code]): Try[Stream[String]] = Try {
+  def apply(codes: Seq[Code]): Stream[String] = {
     def emit(codes: Seq[Code]): Stream[String] = codes match {
       case Seq(code, rest @ _*) => code.repr #:: emit(rest)
       case Seq() => Stream.Empty
@@ -35,7 +34,7 @@ private class BasicEmitter extends Emitter {
   }
 }
 
-object BasicEmitter {
+object Emitter {
   def apply(): Emitter = new BasicEmitter
-  def apply(codes: Seq[Code]): Try[Stream[String]] = apply()(codes)
+  def apply(codes: Seq[Code]): Stream[String] = apply()(codes)
 }
