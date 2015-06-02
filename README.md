@@ -157,7 +157,7 @@ Example:
 $ echo "x + 1" | rpnc
 sym x
 pushsym x
-push 1.0
+push 1
 add 2
 ```
 
@@ -196,11 +196,11 @@ $ echo "x + 1 + y + 2" | rpnc
 sym x
 sym y
 pushsym x
-push 1.0
+push 1
 add 2
 pushsym y
 add 2
-push 2.0
+push 2
 add 2
 ```
 
@@ -211,7 +211,7 @@ sym x
 sym y
 pushsym x
 pushsym y
-push 3.0
+push 3
 add 3
 ```
 
