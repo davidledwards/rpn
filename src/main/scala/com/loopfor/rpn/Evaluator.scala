@@ -40,20 +40,18 @@ private class BasicEvaluator(val resolver: String => Option[Double]) extends Eva
             throw new Exception(s"$name: symbol not bound")
         }
       case Some(PushSymbolCode(name)) =>
-        val st = (syms get name) match {
-          case Some(v) => v +: stack
+        (syms get name) match {
+          case Some(v) => evaluate(codes.tail, v +: stack, syms)
           case None => throw new Exception(s"$name: symbol not bound")
         }
-        evaluate(codes.tail, st, syms)
       case Some(PushCode(v)) =>
         evaluate(codes.tail, v +: stack, syms)
       case Some(c: OperatorCode) =>
         val (vs, rest) = stack splitAt c.args
-        val st = if (vs.size == c.args)
-          (vs.reverse reduceLeft operators(c.getClass)) +: rest
+        if (vs.size == c.args)
+          evaluate(codes.tail, (vs.reverse reduceLeft operators(c.getClass)) +: rest, syms)
         else
           throw new Exception(s"evaluator stack underflow")
-        evaluate(codes.tail, st, syms)
       case Some(_) =>
         evaluate(codes.tail, stack, syms)
       case None =>
