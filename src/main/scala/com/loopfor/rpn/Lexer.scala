@@ -25,9 +25,7 @@ import scala.io.Source
  * Tokens must either be delimited by one or more whitespace characters, or be clearly
  * distinguishable from each other if not separated by whitespace.
  */
-trait Lexer {
-  def apply(in: Stream[Char]): Stream[Token]
-}
+trait Lexer extends (Stream[Char] => Stream[Token])
 
 private class BasicLexer extends Lexer {
   def apply(in: Stream[Char]): Stream[Token] = {

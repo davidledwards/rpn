@@ -41,9 +41,7 @@ import scala.annotation.tailrec
  *    ::= <number>
  * }}}
  */
-trait Parser {
-  def apply(in: Stream[Token]): AST
-}
+trait Parser extends (Stream[Token] => AST)
 
 private class BasicParser extends Parser {
   def apply(in: Stream[Token]): AST = {

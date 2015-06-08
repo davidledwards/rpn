@@ -21,9 +21,7 @@ import scala.annotation.tailrec
  * An optimizer that transforms a sequence of instructions into another sequence of
  * instructions.
  */
-trait Optimizer {
-  def apply(codes: Seq[Code]): Seq[Code]
-}
+trait Optimizer extends (Seq[Code] => Seq[Code])
 
 private class BasicOptimizer extends Optimizer {
   def apply(codes: Seq[Code]): Seq[Code] = {

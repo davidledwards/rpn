@@ -22,9 +22,7 @@ import scala.collection.immutable.Stream
  * An instruction loader that transforms a stream of characters into a stream of
  * instructions.
  */
-trait Loader {
-  def apply(in: Stream[Char]): Stream[Code]
-}
+trait Loader extends (Stream[Char] => Stream[Code])
 
 private class BasicLoader extends Loader {
   def apply(in: Stream[Char]): Stream[Code] = {

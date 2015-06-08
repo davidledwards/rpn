@@ -20,9 +20,7 @@ package com.loopfor.rpn
  * 
  * The instruction sequence should be considered unoptimized.
  */
-trait Generator {
-  def apply(ast: AST): Seq[Code]
-}
+trait Generator extends (AST => Seq[Code])
 
 private class BasicGenerator extends Generator {
   def apply(ast: AST): Seq[Code] = {

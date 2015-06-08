@@ -21,9 +21,7 @@ import scala.math.{max, min, pow}
 /**
  * An evaluator that computes the result of an instruction sequence.
  */
-trait Evaluator {
-  def apply(codes: Stream[Code]): Double
-}
+trait Evaluator extends (Stream[Code] => Double)
 
 private class BasicEvaluator(val resolver: String => Option[Double]) extends Evaluator {
   import Evaluator._

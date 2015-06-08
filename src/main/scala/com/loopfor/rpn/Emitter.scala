@@ -20,9 +20,7 @@ import scala.collection.immutable.Stream
 /**
  * An emitter that transforms a sequence of instructions into a stream of strings.
  */
-trait Emitter {
-  def apply(codes: Seq[Code]): Stream[String]
-}
+trait Emitter extends (Seq[Code] => Stream[String])
 
 private class BasicEmitter extends Emitter {
   def apply(codes: Seq[Code]): Stream[String] = {
